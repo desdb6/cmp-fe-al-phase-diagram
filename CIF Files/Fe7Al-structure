@@ -1,0 +1,41 @@
+data_Fe7Al_bcc_2x2x2_primitive
+_audit_creation_method            'Adapted from a generic Fe7X bcc-derived CIF'
+_chemical_name_common             'Fe7Al bcc-derived structure'
+_chemical_formula_sum             'Fe7Al'
+
+# 8-atom 2x2x2 supercell of a primitive bcc cell.
+# Underlying conventional bcc lattice parameter: a0 = 2.830000 Angstrom.
+# Supercell vectors: A1 = a0*(-1, 1, 1), A2 = a0*(1, -1, 1),
+#                    A3 = a0*(1, 1, -1).
+# Seven Fe atoms and one Al atom: 12.5 at.% Al.
+
+_cell_length_a                    4.901704
+_cell_length_b                    4.901704
+_cell_length_c                    4.901704
+_cell_angle_alpha                 109.471221
+_cell_angle_beta                  109.471221
+_cell_angle_gamma                 109.471221
+
+_space_group_name_H-M_alt         'P 1'
+_space_group_IT_number            1
+
+loop_
+_space_group_symop_operation_xyz
+'x,y,z'
+
+loop_
+_atom_site_label
+_atom_site_type_symbol
+_atom_site_fract_x
+_atom_site_fract_y
+_atom_site_fract_z
+_atom_site_occupancy
+
+Al1    Al    0.000000   0.000000   0.000000   1.0
+Fe1    Fe    0.500000   0.000000   0.000000   1.0
+Fe2    Fe    0.000000   0.500000   0.000000   1.0
+Fe3    Fe    0.000000   0.000000   0.500000   1.0
+Fe4    Fe    0.500000   0.500000   0.000000   1.0
+Fe5    Fe    0.500000   0.000000   0.500000   1.0
+Fe6    Fe    0.000000   0.500000   0.500000   1.0
+Fe7    Fe    0.500000   0.500000   0.500000   1.0
