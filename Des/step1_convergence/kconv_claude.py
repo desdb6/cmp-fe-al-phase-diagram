@@ -5,10 +5,10 @@ from ase.io import read
 from ase.units import GPa
 from ase.calculators.espresso import Espresso, EspressoProfile
 
-CIF = "CIF Files/Fe7X-structure.cif"          # adjust to the provided file name
-PSEUDO_DIR = "/home/max/pseudos"
-PSEUDOS = {"Fe": "Fe.pbe-spn-kjpaw_psl.1.0.0.UPF",
-           "Al": "Al.pbe-n-kjpaw_psl.1.0.0.UPF"}
+CIF = "CIF Files/Fe7Al-structure.cif"          # adjust to the provided file name
+PSEUDO_DIR = "/Pseudopotentials"
+PSEUDOS = {"Fe": "Fe.paw.pbe.z_16.ld1.psl.v0.2.1.upf",
+           "Al": "Al.us.pbe.z_3.ld1.psl.v1.0.0-low.upf"}
 ECUTWFC, ECUTRHO = 50, 400            # keep fixed here; converge these separately
 SPACINGS = [0.50, 0.40, 0.30, 0.25, 0.20, 0.15, 0.12, 0.10]   # 1/Å, coarse -> fine
 OUT = "kconv.csv"
