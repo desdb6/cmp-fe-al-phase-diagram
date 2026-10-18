@@ -3,8 +3,11 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 import os, csv
+import random
 from time import time
 import numpy as np
+import shutil
+
 from ase.io import read
 from ase.units import GPa
 from ase.calculators.espresso import Espresso, EspressoProfile
@@ -64,3 +67,15 @@ def single_sfc(ecutwfc, ecutrho, kmesh, output_dir):
                     energy, pressure_kbar, moment, tock-tick])
     print(f"mesh {tag:>8}  P = {pressure_kbar:8.2f} kbar  m = {moment:.3f} μB",
         flush=True)
+    
+if __name__ ==  "__main__":
+    kmesh_sizes = [(4, 4, 4), (5, 5, 5), (6, 6, 6)]
+
+    while True:
+        kmesh = random.choice(kmesh_sizes)
+        ecutwfc = random.randint(70, 120)
+        ecutrho = random.randint(600, 1200)
+        tag = f"{"x".join(str(k) for k in kmesh)}_{ecutwfc}_{ecutrho}"
+
+        single_sfc(ecutwfc, ecutrho, kmesh, "/home/des/cmp-fe-al-phase-diagram/Des/step1_convergence/v2/final_settings")
+        shutil.rmtree("/home/des/cmp-fe-al-phase-diagram/Des/step1_convergence/v2/final_settings/" + tag)
