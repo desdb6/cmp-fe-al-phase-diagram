@@ -134,6 +134,7 @@ class EoSfit:
         self.V = df[volume_label].to_numpy()   # A^3
         self.E = df[energy_label].to_numpy()   # Ry
         self.fit()
+        self.write_results()
 
     def fit(self, eos=("birchmurnaghan", "murnaghan", "vinet")):
         """Return a DataFrame with V0, E0, B0 for each EOS form."""
@@ -149,6 +150,12 @@ class EoSfit:
             })
         self.results = pd.DataFrame(rows)
         return self.results
+
+    def write_results(self):
+        """Write a csv file with the results of the fit."""
+        output_path = self.csv_path.parent / "eos_fit_results.csv"
+        self.results.to_csv(output_path, index=False)
+        return output_path
         
     def plot(self, filename=None, eos="birchmurnaghan"):
         """Plot data and fit with correct axis labels (A^3, Ry)."""

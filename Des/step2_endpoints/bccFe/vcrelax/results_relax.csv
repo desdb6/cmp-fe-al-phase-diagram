@@ -1,0 +1,2 @@
+k1,k2,k3,ecutwfc,ecutrho,calculation,initial volume (Ang**3),final volume (Ang**3),final lattice parameter (Ang),energy (Ry),avg pressure (kbar),moment (muB),Wall time (s)
+6,6,6,120,1440,vc-relax,23.55,22.608214614551787,2.827626799,-658.5443289146903,-0.3456969063412805,4.22,67.03523721099918
