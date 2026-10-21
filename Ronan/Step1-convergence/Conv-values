@@ -1,5 +1,5 @@
 # Use the following values for every test, change k-mesh if you change the unit cell so it remains equally dense. 
 
 k-mesh: 5x5x5
-ecutwfc: 90
+ecutwfc: 90 of 100
 ecutrho: 1080
