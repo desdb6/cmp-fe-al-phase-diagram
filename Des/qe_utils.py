@@ -48,10 +48,26 @@ def atoms_fe7al(lattice_parameter: float) -> ase.Atoms:
     return atoms
 
 
-def atoms_bcc_Fe(lattice_parameter: float, magmom: float = 2.5) -> ase.Atoms:
-    """Generate an Atoms object for an Fe7Al structure"""
+def atoms_bcc_Fe(lattice_parameter: float, magmom: float = 0.5) -> ase.Atoms:
+    """Generate an Atoms object for a Fe bcc structure"""
     atoms = bulk('Fe', 'bcc', a=lattice_parameter, cubic=True)
     atoms.set_initial_magnetic_moments([magmom] * len(atoms))
+    return atoms
+
+
+def atoms_d03_fe3al(lattice_parameter: float, magmom: float = 0.5) -> ase.Atoms:
+    """Generate an Atoms object for an D03-Fe3Al structure"""
+    atoms = bulk('Fe', 'bcc', a=lattice_parameter, cubic=True) * (2, 2, 2)
+    atom_positions = list(atoms.get_positions() / lattice_parameter)
+    Al_positions = [
+        [0.5, 0.5, 0.5],
+        [1.5, 0.5, 1.5],
+        [1.5, 1.5, 0.5],
+        [0.5, 1.5, 1.5],
+    ]
+    for pos in Al_positions:
+        index = np.where(np.all(np.isclose(atom_positions, pos, atol=1e-6), axis=1))[0][0]
+        atoms[index].symbol = "Al"
     return atoms
 
 
@@ -181,5 +197,5 @@ class EoSfit:
 
 
 if __name__ == "__main__":
-    atoms = atoms_fe7al(2.83)
+    atoms = atoms_d03_fe3al(10)
     vis_atoms(atoms)

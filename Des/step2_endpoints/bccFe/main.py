@@ -17,12 +17,12 @@ settings = QESettings(ecutwfc=120, ecutrho=1440, kmesh=(6, 6, 6))
 eos_fit = EoSfit("/home/des/cmp-fe-al-phase-diagram/Des/step2_endpoints/bccFe/run2/results.csv")
 eos_fit.plot("/home/des/cmp-fe-al-phase-diagram/Des/step2_endpoints/bccFe/run2/EoS_bm_fit")
 
-# plot_csv(
-#     "/home/des/cmp-fe-al-phase-diagram/Des/step2_endpoints/bccFe/run2/results.csv",
-#     x="volume (Ang**3)",
-#     y="moment (muB)",
-#     title="Magnetic moment as a function of unit cell volume",
-#     xlabel=r"Volume (Å$^3$)")
-# plt.show()
+plot_csv(
+    "/home/des/cmp-fe-al-phase-diagram/Des/step2_endpoints/bccFe/run2/results.csv",
+    x="volume (Ang**3)",
+    y="moment (muB)",
+    title="Magnetic moment as a function of unit cell volume",
+    xlabel=r"Volume (Å$^3$)")
+plt.savefig("/home/des/cmp-fe-al-phase-diagram/Des/step2_endpoints/bccFe/run2/magnetic_moment.png", dpi=200)
 
 # single_relax(EXP_V, settings, "/home/des/cmp-fe-al-phase-diagram/Des/step2_endpoints/bccFe/vcrelax")
