@@ -21,7 +21,7 @@ PSEUDOS = {"Fe": "Fe.paw.pbe.z_16.ld1.psl.v0.2.1",
 def single_sfc(ecutwfc, ecutrho, kmesh, output_dir):
     ECUTWFC, ECUTRHO = ecutwfc, ecutrho
     KMESH = kmesh
-    OUT =  output_dir + "/" + "results.csv"
+    OUT =  output_dir + "/results.csv"
 
     profile = EspressoProfile(command="mpirun -np 1 /home/des/q-e/bin/pw.x",
                             pseudo_dir=PSEUDO_DIR)
