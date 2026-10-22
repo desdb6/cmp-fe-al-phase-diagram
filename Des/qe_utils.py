@@ -56,7 +56,10 @@ def atoms_bcc_Fe(lattice_parameter: float, magmom: float = 0.5) -> ase.Atoms:
 
 
 def atoms_d03_fe3al(lattice_parameter: float, magmom: float = 0.5) -> ase.Atoms:
-    """Generate an Atoms object for an D03-Fe3Al structure"""
+    """
+    Generate an Atoms object for an D03-Fe3Al structure
+    WARNING: the lattice parameter input is the length of 1 bcc subsell, not the entire supercell
+    """
     atoms = bulk('Fe', 'bcc', a=lattice_parameter, cubic=True) * (2, 2, 2)
     atom_positions = list(atoms.get_positions() / lattice_parameter)
     Al_positions = [
@@ -68,6 +71,9 @@ def atoms_d03_fe3al(lattice_parameter: float, magmom: float = 0.5) -> ase.Atoms:
     for pos in Al_positions:
         index = np.where(np.all(np.isclose(atom_positions, pos, atol=1e-6), axis=1))[0][0]
         atoms[index].symbol = "Al"
+    atoms.set_initial_magnetic_moments(
+        [magmom if s == "Fe" else 0.0 for s in atoms.get_chemical_symbols()]
+    )
     return atoms
 
 
@@ -167,12 +173,13 @@ class EoSfit:
         self.results = pd.DataFrame(rows)
         return self.results
 
-    def write_results(self):
+    def write_results(self, output_path=None):
         """Write a csv file with the results of the fit."""
-        output_path = self.csv_path.parent / "eos_fit_results.csv"
+        if output_path is None:
+            output_path = self.csv_path.parent / "eos_fit_results.csv"
         self.results.to_csv(output_path, index=False)
         return output_path
-        
+
     def plot(self, filename=None, eos="birchmurnaghan"):
         """Plot data and fit with correct axis labels (A^3, Ry)."""
         e = EquationOfState(self.V, self.E, eos=eos)
