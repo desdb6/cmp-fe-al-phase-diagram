@@ -12,18 +12,17 @@ EXP_V_BCC = 23.55
 
 settings = QESettings(ecutwfc=60, ecutrho=600, kmesh=(3, 3, 3))
 
-# # Generate and write a cif file
-# atoms = atoms_d03_fe3al(lattice_parameter=(EXP_V_BCC) ** (1/3))
-# write_cif(atoms, path="/home/des/cmp-fe-al-phase-diagram/Des/step2_endpoints/D03Fe3Al", filename="D03Fe3Al")
+# Generate and write a cif file
+atoms = atoms_d03_fe3al(lattice_parameter=(EXP_V_BCC) ** (1/3))
+write_cif(atoms, path="/home/des/cmp-fe-al-phase-diagram/Des/step2_endpoints/D03Fe3Al", filename="D03Fe3Al")
 
-# # Run a single vcrelax calculation to find the equilibrium volume
-# vc_relax_vol, _ = single_relax(
-#     volume=EXP_V_BCC * 8,
-#     settings=settings,
-#     output_folder="/home/des/cmp-fe-al-phase-diagram/Des/step2_endpoints/D03Fe3Al/vcrelax",
-#     )
-
-vc_relax_vol = 190.47861797985223
+# Run a single vcrelax calculation to find the equilibrium volume
+vc_relax_vol, _ = single_relax(
+    volume=EXP_V_BCC * 8,
+    settings=settings,
+    output_folder="/home/des/cmp-fe-al-phase-diagram/Des/step2_endpoints/D03Fe3Al/vcrelax",
+    )
+    
 # Run multiple single scf calculations with 10% volume variation
 scf_dir = "/home/des/cmp-fe-al-phase-diagram/Des/step2_endpoints/D03Fe3Al/scf_series"
 volumes = vc_relax_vol * np.linspace(0.9, 1.1, 9)
