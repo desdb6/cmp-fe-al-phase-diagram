@@ -10,7 +10,7 @@ from scf import single_scf, single_relax
 
 EXP_V_BCC = 23.55
 
-settings = QESettings(ecutwfc=60, ecutrho=600, kmesh=(3, 3, 3))
+settings = QESettings(ecutwfc=90, ecutrho=1080, kmesh=(5, 5, 5))
 
 # Generate and write a cif file
 atoms = atoms_d03_fe3al(lattice_parameter=(EXP_V_BCC) ** (1/3))
