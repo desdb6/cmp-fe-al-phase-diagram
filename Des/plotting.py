@@ -26,7 +26,7 @@ def plot_csv(
     grid=True,
     ax=None,
     **plot_kwargs,
-):
+    ):
     """Plot one column of a CSV file against another.
 
     csv_path   : path to the file
