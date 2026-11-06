@@ -20,6 +20,12 @@ def vis_atoms(atoms: ase.Atoms) -> None:
     """Visualize Atoms object."""
     view(atoms)
 
+def set_volume(atoms, target_volume):
+    """Return a copy of atoms with the cell isotropically scaled to target_volume (A^3). (Claude)"""
+    new = atoms.copy()
+    factor = (target_volume / new.get_volume()) ** (1 / 3)
+    new.set_cell(new.cell.array * factor, scale_atoms=True)
+    return new
 
 def fe7al(lattice_parameter: float) -> ase.Atoms:
     """Generate an Atoms object for an Fe7Al structure"""

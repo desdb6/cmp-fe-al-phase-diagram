@@ -1,0 +1,8 @@
+parameter,value,unit
+ecutwfc,40.0,Ry
+ecutrho,500.0,Ry
+kmesh,3,per direction
+variable converged,pressure,kbar
+tolerance ecutwfc,0.5,kbar
+tolerance ecutrho,0.5,kbar
+tolerance kmesh,0.5,kbar
