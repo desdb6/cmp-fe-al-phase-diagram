@@ -13,9 +13,11 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 from ase.calculators.espresso import Espresso, EspressoProfile
+from ase.eos import EquationOfState
 
 from parsers import *
 from utils import *
+from crystal_builder import *
 
 # Pseudopotential paths
 PSEUDO_DIR = "/home/des/cmp-fe-al-phase-diagram/Pseudopotentials"
@@ -94,21 +96,17 @@ class EoSfit:
 
     def __init__(
         self,
-        csv_path,
-        energy_label="energy (Ry)",
-        volume_label="volume (Ang**3)",
+        energies,
+        volumes,
+        output_path,
         **read_kwargs,
     ):
-        self.csv_path = Path(csv_path)
-        raw = pd.read_csv(self.csv_path, **read_kwargs)  # e.g. sep="\t"
-        df = (raw[[volume_label, energy_label]]
-              .dropna()
-              .drop_duplicates(subset=volume_label)
-              .sort_values(volume_label))
-        self.V = df[volume_label].to_numpy()   # A^3
-        self.E = df[energy_label].to_numpy()   # Ry
+        self.V = volumes   # A^3
+        self.E = energies   # Ry
+        self.output_path = output_path
         self.fit()
         self.write_results()
+        self.plot()
 
     def fit(self, eos=("birchmurnaghan", "murnaghan", "vinet")):
         """Return a DataFrame with V0, E0, B0 for each EOS form."""
@@ -118,21 +116,18 @@ class EoSfit:
             v0, e0, B = EquationOfState(self.V, self.E, eos=name).fit()
             rows.append({
                 "eos": name,
-                "V0 (A**3)": v0,
-                "E0 (Ry)": e0,
-                "B0 (kbar)": B * RY_PER_ANG3_TO_KBAR_CONV,
+                "V0": v0,
+                "E0": e0,
+                "B0": B * RY_PER_ANG3_TO_KBAR_CONV,
             })
         self.results = pd.DataFrame(rows)
         return self.results
 
-    def write_results(self, output_path=None):
+    def write_results(self):
         """Write a csv file with the results of the fit."""
-        if output_path is None:
-            output_path = self.csv_path.parent / "eos_fit_results.csv"
-        self.results.to_csv(output_path, index=False)
-        return output_path
+        self.results.to_csv(self.output_path + "/eos_results.csv", index=False)
 
-    def plot(self, filename=None, eos="birchmurnaghan"):
+    def plot(self, eos="birchmurnaghan"):
         """Plot data and fit with correct axis labels (A^3, Ry)."""
         e = EquationOfState(self.V, self.E, eos=eos)
         e.fit()
@@ -150,8 +145,8 @@ class EoSfit:
             rf"$B_0$ = {B * RY_PER_ANG3_TO_KBAR_CONV:.2f} kbar",
             fontsize=8,
         )
-        if filename:
-            fig.savefig(filename, dpi=200, bbox_inches="tight")
+
+        fig.savefig(self.output_path + "/eos_plot.png", dpi=200, bbox_inches="tight")
         return fig, ax
         
 def parse_qe_settings(structure: Atoms, settings: QESettings, calc_dir: str) -> Espresso:
@@ -175,6 +170,15 @@ def parse_qe_settings(structure: Atoms, settings: QESettings, calc_dir: str) -> 
         kpts=settings.kmesh,
     )
 
+def save_result_csv(result: dict, output_path) -> None:
+    """Save the results dict of a single calculation to a csv file. The 'atoms' entry is skipped. (Claude)"""
+    columns = [k for k in result if k != "atoms"]
+
+    with open(output_path, "w", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow(columns)
+        writer.writerow([result[k] for k in columns])
+
 def run_calculation(structure: Atoms, settings: QESettings, calc_dir: str,
                     overwrite: bool = False) -> dict:
     """
@@ -195,7 +199,7 @@ def run_calculation(structure: Atoms, settings: QESettings, calc_dir: str,
     # Always read from file, for relax/vc-relax this is the final structure
     final = read(output, format="espresso-out")
 
-    return {
+    results = {
         "energy": read_energy(calc_dir), # Ry
         "volume": read_volume(calc_dir), # Ang**3
         "pressure": read_pressure(calc_dir), # kbar
@@ -203,6 +207,9 @@ def run_calculation(structure: Atoms, settings: QESettings, calc_dir: str,
         "time": read_time(calc_dir), # s
         "atoms": final,
     }
+
+    save_result_csv(results, calc_dir / "results.csv")
+    return results
 
 def convergence_test(
     structure: Atoms,
@@ -212,10 +219,10 @@ def convergence_test(
     kmesh_list: list,
     rho_wfc_ratio: int = 6,
     kmesh_dense: int = 7,
-    var_to_converge: str = "energy",
-    ecutwfc_tol = 1e-2,
-    ecutrho_tol = 5e-4,
-    kmesh_tol = 2e-2
+    var_to_converge: str = "pressure",
+    ecutwfc_tol = 5e-1,
+    ecutrho_tol = 5e-1,
+    kmesh_tol = 5e-1
     ):
     """
     Perform an automatic convergence test on a given structure, for settings within given ranges.
@@ -251,17 +258,6 @@ def convergence_test(
             conv = x_list[-1]
         return conv
 
-    def save_results_csv(results, output_path, index_label="x"):
-        """Save a nested results dict to a csv file. (Claude) """
-        first = next(iter(results.values()))
-        columns = [k for k in first if k != "atoms"] # Skip the atoms column
-
-        with open(output_path, "w", newline="") as f:
-            writer = csv.writer(f)
-            writer.writerow([index_label] + columns)
-            for x, res in results.items():
-                writer.writerow([x] + [res[k] for k in columns])
-
     # Stage 1: ecutwfc
     results = {}
     for ecutwfc in ecutwfc_list:
@@ -277,7 +273,7 @@ def convergence_test(
         results[ecutwfc] = run_calculation(structure, settings, output_dir)
     conv_ecutwfc = check_convergence(ecutwfc_list, results, ecutwfc_tol,
                                      "ecutwfc (Ry)", f"{calc_dir}/ecutwfc/ecutwfc_convergence.png")
-    save_results_csv(results, f"{calc_dir}/ecutwfc/results.csv", index_label="ecutwfc")
+    save_nested_dict_csv(results, f"{calc_dir}/ecutwfc/results.csv", index_label="ecutwfc")
 
     # Stage 2: ecutrho
     results = {}
@@ -293,7 +289,7 @@ def convergence_test(
         results[ecutrho] = run_calculation(structure, settings, output_dir)
     conv_ecutrho = check_convergence(ecutrho_list, results, ecutrho_tol,
                                      "ecutrho (Ry)", f"{calc_dir}/ecutrho/ecutrho_convergence.png")
-    save_results_csv(results, f"{calc_dir}/ecutrho/results.csv", index_label="ecutrho")
+    save_nested_dict_csv(results, f"{calc_dir}/ecutrho/results.csv", index_label="ecutrho")
 
     # Stage 3: kmesh
     results = {}
@@ -309,7 +305,7 @@ def convergence_test(
         results[kmesh] = run_calculation(structure, settings, output_dir)
     conv_kmesh = check_convergence(kmesh_list, results, kmesh_tol,
                                    "kmesh", f"{calc_dir}/kmesh/kmesh_convergence.png")
-    save_results_csv(results, f"{calc_dir}/kmesh/results.csv", index_label="kmesh")
+    save_nested_dict_csv(results, f"{calc_dir}/kmesh/results.csv", index_label="kmesh")
 
     # Saving results
     with open(f"{calc_dir}/converged_settings.csv", "w", newline="") as f:
@@ -329,3 +325,122 @@ def convergence_test(
     print(f"  kmesh:   {conv_kmesh} x {conv_kmesh} x {conv_kmesh}")
 
     return {"ecutwfc": conv_ecutwfc, "ecutrho": conv_ecutrho, "kmesh": conv_kmesh}
+
+def scf_volume_sweep(
+    structure: ase.Atoms,
+    settings: QESettings,
+    calc_dir: str,
+    starting_volume: float,
+    volume_lower_bound: float = 0.96,
+    volume_upper_bound: float = 1.06,
+    n_volumes: int = 10
+    ):
+    """Performs a volume sweep."""
+    if settings.calc_type != "scf":
+        raise ValueError("Please input an scf settings file to perform a volume sweep.")
+
+    # Volume sweep
+    ratios = np.linspace(volume_lower_bound, volume_upper_bound, n_volumes)
+    volumes = ratios * starting_volume
+
+    results = {}
+    for volume, ratio in zip(volumes, ratios):
+        rescaled_structure = set_volume(structure, volume)
+        output_dir = calc_dir + f"/volume_{ratio:2g}"
+        results[ratio] = run_calculation(rescaled_structure, settings, output_dir)
+    save_nested_dict_csv(results, f"{calc_dir}/results.csv", index_label="ratio")
+
+    return results
+
+def full_analysis(
+    structure: ase.Atoms,
+    settings_vcrelax: QESettings,
+    settings_sweep: QESettings,
+    calc_dir: str
+    ):
+    """
+    Perform a full analysis in 4 stages:
+    1. vc-relax calculation to find equilibrium volume
+    2. volume sweep to build E(V) curve
+    3. Birch-Murghanan EoS fit
+    4. Calculate formation energy
+    """
+
+    # Stage 1: vc-relax
+    vc_relax_results = run_calculation(structure, settings_vcrelax, calc_dir + "/vc_relax")
+
+    # Stage 2: volume sweep
+    sweep_results = scf_volume_sweep(structure, settings_sweep, calc_dir + "/volume_sweep", vc_relax_results["volume"])
+
+    # Stage 3: Birch-Murghanan fit
+    energies = np.array([r["energy"] for r in sweep_results.values()])
+    volumes  = np.array([r["volume"] for r in sweep_results.values()])
+    eos_fit = EoSfit(energies, volumes, calc_dir)
+
+    # Stage 4: formation energy
+    row = eos_fit.results.set_index("eos").loc["birchmurnaghan"]
+    e0_cell = row["E0"]
+    v0_cell = row["V0"]
+    b0 = row["B0"]
+
+    refs = get_formation_energies()               # Ry per atom
+    symbols = structure.get_chemical_symbols()
+    n_atoms = len(symbols)
+    e_ref = sum(refs[s] for s in symbols)         # also works for Fe-Al mixtures
+
+    e_form_ry = (e0_cell - e_ref) / n_atoms
+    e_form_ev = e_form_ry * Ry                    # Ry comes from ase.units via utils
+
+    summary = {
+        "formula": structure.get_chemical_formula(),
+        "n_atoms": n_atoms,
+        "V0 (A**3/atom)": v0_cell / n_atoms,
+        "B0 (kbar)": b0,
+        "E0 (Ry/atom)": e0_cell / n_atoms,
+        "E_form (Ry/atom)": e_form_ry,
+        "E_form (eV/atom)": e_form_ev,
+    }
+    save_result_csv(summary, Path(calc_dir) / "formation_energy.csv")
+    return summary
+
+if __name__ == "__main__":
+    primitive_fe7al = supercell_primitive_one_al(n=2, vol=7*V_PER_ATOM_FE + V_PER_ATOM_AL)
+    conventional_fe15al = supercell_conventional_one_al(n=2, vol=15*V_PER_ATOM_FE + V_PER_ATOM_AL)
+    primitive_fe26al = supercell_primitive_one_al(n=3, vol=26*V_PER_ATOM_FE + V_PER_ATOM_AL)
+    conventional_fe53al = supercell_primitive_one_al(n=3, vol=53*V_PER_ATOM_FE + V_PER_ATOM_AL)
+    scf_settings_high = QESettings(
+        calc_type='scf',
+        ecutwfc=120,
+        ecutrho=1500,
+        kmesh=(6, 6, 6)
+    )
+    vc_relax_settings_high = QESettings(
+        calc_type='vc-relax',
+        ecutwfc=120,
+        ecutrho=1500,
+        kmesh=(6, 6, 6),
+        target_press=0,
+        forc_conv_thr=5e-4
+    )
+    scf_settings_low = QESettings(
+        calc_type='scf',
+        ecutwfc=120,
+        ecutrho=1500,
+        kmesh=(4, 4, 4)
+    )
+    vc_relax_settings_low = QESettings(
+        calc_type='vc-relax',
+        ecutwfc=120,
+        ecutrho=1500,
+        kmesh=(4, 4, 4),
+        target_press=0,
+        forc_conv_thr=5e-4
+    )
+    full_analysis(primitive_fe7al, vc_relax_settings_high, scf_settings_high, "/home/des/cmp-fe-al-phase-diagram/Des/step4_one_atom_supercells/primitive/12.5/full_analysis_test")
+    print("fe7al done")
+    full_analysis(conventional_fe15al, vc_relax_settings_high, scf_settings_high, "/home/des/cmp-fe-al-phase-diagram/Des/step4_one_atom_supercells/conventional/6.25/full_analysis_test")
+    print("fe15al done")
+    full_analysis(primitive_fe26al, vc_relax_settings_low, scf_settings_low, "/home/des/cmp-fe-al-phase-diagram/Des/step4_one_atom_supercells/primitive/3.70/full_analysis_test")
+    print("fe26al done")
+    full_analysis(conventional_fe53al, vc_relax_settings_low, scf_settings_low, "/home/des/cmp-fe-al-phase-diagram/Des/step4_one_atom_supercells/conventional/1.85/full_analysis_test")
+    print("fe53al done")

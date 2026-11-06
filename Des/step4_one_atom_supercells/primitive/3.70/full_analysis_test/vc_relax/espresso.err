@@ -1,0 +1,204 @@
+Out of memory allocating 5789192688 bytes of device memory
+Failing in Thread:1
+total/free CUDA memory: 8325824512/5361434624
+Present table dump for device[1]: NVIDIA Tesla GPU 0, compute capability 8.9, threadid=1
+Hint: specify 0x800 bit in NV_ACC_DEBUG for verbose info.
+host:0x21fd300 device:0x770127e9cd00 size:2040 presentcount:1+0 line:-1 name:_xdm_module_21
+host:0x23ab340 device:0x770127e9d500 size:184 presentcount:1+0 line:-1 name:_cell_base_21
+host:0x23ac280 device:0x770127e9d600 size:32 presentcount:1+0 line:-1 name:_constraints_module_21
+host:0x23ad040 device:0x770145127a00 size:8680 presentcount:0+1 line:98 name:dfft
+host:0x23af228 device:0x770145129c00 size:8680 presentcount:0+1 line:98 name:dfft
+host:0x25dcc40 device:0x770127e9d800 size:160 presentcount:1+0 line:-1 name:_vdw_df_21
+host:0x25dce00 device:0x770127e9d900 size:160 presentcount:1+0 line:-1 name:_rvv10_21
+host:0x2612520 device:0x770127e9da00 size:240 presentcount:1+0 line:-1 name:_st_37160027435a6c0a2b61425403780740672c5377050571_mi
+host:0x2614418 device:0x770127e9db00 size:4 presentcount:1+0 line:-1 name:_st_37160027435a6c0a2b61425403780740672c5377050571_beeforder
+host:0x2637600 device:0x770127e9e100 size:9824 presentcount:1+0 line:-1 name:_mbd_vdw_param_21
+host:0x264e0a0 device:0x770145127800 size:176 presentcount:0+1 line:78 name:descriptor
+host:0x264e160 device:0x770145127200 size:128 presentcount:0+1 line:61 name:descriptor
+host:0x264e340 device:0x770145127600 size:128 presentcount:0+1 line:74 name:descriptor
+host:0x26985a8 device:0x770127e9dc00 size:4 presentcount:1+0 line:-1 name:_st_37160027435a6c0a2b61425403780740672c5377050571_beeftype
+host:0x269b3c0 device:0x770127e9c700 size:432 presentcount:1+0 line:-1 name:_exx_base_16
+host:0x269b580 device:0x770127e9c900 size:192 presentcount:1+0 line:-1 name:_exx_16
+host:0x269b780 device:0x770127e9ca00 size:192 presentcount:1+0 line:-1 name:_exx_bp_utils_16
+host:0x28b4010 device:0x7700d1bfe400 size:176 presentcount:0+1 line:88 name:descriptor
+host:0x28b4780 device:0x770127e9cc00 size:192 presentcount:1+0 line:-1 name:_force_mod_16
+host:0x28b5590 device:0x7700d1bfe200 size:176 presentcount:0+1 line:142 name:descriptor
+host:0x28b5710 device:0x7700d1bfea00 size:128 presentcount:0+1 line:50 name:descriptor
+host:0x2b632c0 device:0x770127e9d700 size:144 presentcount:1+0 line:-1 name:_electrons_base_16
+host:0x2b64500 device:0x770127e9cb00 size:144 presentcount:1+0 line:-1 name:_mp_exx_16
+host:0x2b65a60 device:0x770145126e00 size:128 presentcount:0+1 line:102 name:descriptor
+host:0x2b65af0 device:0x770145127000 size:128 presentcount:0+1 line:102 name:descriptor
+host:0x2b65b80 device:0x770145126c00 size:176 presentcount:0+1 line:102 name:descriptor
+host:0x2b65c40 device:0x770145126a00 size:176 presentcount:0+1 line:102 name:descriptor
+host:0x2b65e50 device:0x7700d1bf5e00 size:176 presentcount:0+1 line:36 name:descriptor
+host:0x2b65f10 device:0x7700d1bf6000 size:176 presentcount:0+1 line:36 name:descriptor
+host:0x2b65fd0 device:0x7700d1bf6200 size:176 presentcount:0+1 line:36 name:descriptor
+host:0x2b68ad0 device:0x7700d1bfe600 size:176 presentcount:0+1 line:57 name:descriptor
+host:0x3871f10 device:0x7700d1bff200 size:224 presentcount:0+1 line:89 name:descriptor
+host:0x3872050 device:0x7700d1bff000 size:224 presentcount:0+1 line:96 name:descriptor
+host:0x3872190 device:0x7700d1bfee00 size:272 presentcount:0+1 line:88 name:descriptor
+host:0x3872350 device:0x7700d1df0800 size:176 presentcount:0+1 line:86 name:descriptor
+host:0x3872410 device:0x7700d1bff400 size:176 presentcount:0+1 line:99 name:descriptor
+host:0x38724d0 device:0x7700d1bff600 size:176 presentcount:0+1 line:100 name:descriptor
+host:0x38725d0 device:0x7700d1bfec00 size:176 presentcount:0+1 line:106 name:descriptor
+host:0x38736d0 device:0x7700d1b76000 size:176 presentcount:0+1 line:312 name:descriptor
+host:0x3873790 device:0x7700d1b76400 size:176 presentcount:0+1 line:314 name:descriptor
+host:0x38739a0 device:0x7700d1bfe800 size:176 presentcount:0+1 line:45 name:descriptor
+host:0x3873a60 device:0x7700d1bac800 size:224 presentcount:0+1 line:339 name:descriptor
+host:0x3873b50 device:0x7700d1b99c00 size:272 presentcount:0+1 line:320 name:descriptor
+host:0x3873c70 device:0x7700d1bab000 size:224 presentcount:0+1 line:326 name:descriptor
+host:0x3873e50 device:0x7700d1b76800 size:176 presentcount:0+1 line:316 name:descriptor
+host:0x3873f10 device:0x7700d1b77600 size:224 presentcount:0+1 line:318 name:descriptor
+host:0x3874000 device:0x7700d1bbec00 size:224 presentcount:0+1 line:342 name:descriptor
+host:0x38e3640 device:0x770127e9dd00 size:288 presentcount:1+0 line:-1 name:_fft_buffers_16
+host:0x38e8080 device:0x770127e9df00 size:288 presentcount:1+0 line:-1 name:_data_buffer_16
+host:0x1d77c530 device:0x770145127400 size:8 presentcount:0+1 line:74 name:tau_core(:)
+host:0x1d911800 device:0x7700e2e00000 size:8463732 presentcount:0+1 line:98 name:dfft%nl(:)
+host:0x1e127340 device:0x7700d1a00000 size:1531044 presentcount:0+1 line:98 name:dfft%nl(:)
+host:0x1e2a46a0 device:0x7700d1baca00 size:73872 presentcount:0+1 line:342 name:becsum(:,:,:)
+host:0x1e3a0d00 device:0x7700d1bbfe00 size:155952 presentcount:0+1 line:36 name:eigts1(-nr1:nr1,1:nat)
+host:0x1e3d7030 device:0x7700d1d75e00 size:155952 presentcount:0+1 line:36 name:eigts2(-nr2:nr2,1:nat)
+host:0x1e3fd190 device:0x7700d1bf6400 size:32256 presentcount:0+1 line:142 name:et(:,:)
+host:0x1e413990 device:0x7700d1daaa00 size:155952 presentcount:0+1 line:36 name:eigts3(-nr3:nr3,1:nat)
+host:0x1e439af0 device:0x77014512be00 size:384224 presentcount:0+1 line:50 name:g2kin(:)
+host:0x1e497800 device:0x7700d1dd0c00 size:124000 presentcount:0+1 line:106 name:tab_vloc(:,:)
+host:0x1e4c4550 device:0x770064000000 size:13018320 presentcount:0+1 line:88 name:tab_qrad(:,:,:,:)
+host:0x1f12ea50 device:0x770145189c00 size:210624 presentcount:0+1 line:96 name:tab_beta(:,:,:)
+host:0x1f1624c0 device:0x7701451bd400 size:175600 presentcount:0+1 line:89 name:tab_atwfc(:,:,:)
+host:0x1fcf2a40 device:0x770051e00000 size:123984 presentcount:0+1 line:99 name:tab_rhc(:,:)
+host:0x1feb26f0 device:0x770051e1e600 size:123984 presentcount:0+1 line:100 name:tab_tac(:,:)
+host:0x2055b5f0 device:0x770051e3cc00 size:123984 presentcount:0+1 line:86 name:tab_rhoat(:,:)
+host:0x2ad91f80 device:0x76ff99b75000 size:71136 presentcount:1+0 line:130 name:tbecsum(:,:,:)
+host:0x2b6f8d00 device:0x76fca9e00000 size:16927464 presentcount:1+0 line:104 name:qmod(:)
+host:0x76ff403cc8e0 device:0x76fcd4200000 size:880228128 presentcount:1+0 line:130 name:skk(:,:)
+host:0x76ff74b422b0 device:0x76fcb8c00000 size:423186600 presentcount:1+0 line:104 name:ylmk0(:,:)
+host:0x76ff8ded8c80 device:0x76fcb1000000 size:67709856 presentcount:1+0 line:81 name:aux(:,:)
+host:0x76ff9b3410a0 device:0x76fcb6a00000 size:33854928 presentcount:1+0 line:104 name:qgm(:)
+host:0x77007c000000 device:0x770066000000 size:365781248 presentcount:0+1 line:45 name:vkb(:,:)
+host:0x77009f3fc850 device:0x770092000000 size:193648896 presentcount:0+1 line:57 name:evc(:,:)
+host:0x7700d2db6330 device:0x7700cc000000 size:93312000 presentcount:0+1 line:78 name:vrs(:,:)
+host:0x7700e3800000 device:0x7700e3c00000 size:3073792 presentcount:0+1 line:88 name:igk_k(1:npwx,1:nks)
+host:0x7700e5a44d00 device:0x7700e0000000 size:46656000 presentcount:0+1 line:61 name:rho_core(:)
+host:0x77010c77dc80 device:0x77010b200000 size:8463732 presentcount:0+1 line:102 name:igtongl(1:ngm)
+host:0x77010cf91650 device:0x770108000000 size:50782392 presentcount:0+1 line:102 name:g(1:3,1:ngm)
+host:0x770140775860 device:0x770124000000 size:25391196 presentcount:0+1 line:102 name:mill(1:3,1:ngm)
+host:0x770141fad440 device:0x770125a00000 size:16927464 presentcount:0+1 line:102 name:gg(1:ngm)
+host:0x7701452fa200 device:0x7700d1b75e00 size:144 presentcount:0+1 line:312 name:indv(:,:)
+host:0x7701452fa400 device:0x7700d1b76200 size:144 presentcount:0+1 line:314 name:nhtol(:,:)
+host:0x7701452fa600 device:0x7700d1b76600 size:288 presentcount:0+1 line:316 name:nhtoj(:,:)
+host:0x7701452fa800 device:0x7700d1b76a00 size:2592 presentcount:0+1 line:318 name:ijtoh(:,:,:)
+host:0x7701452fb400 device:0x7700d1b77800 size:139968 presentcount:0+1 line:320 name:deeq(:,:,:,:)
+host:0x77014531d800 device:0x7700d1b99e00 size:69984 presentcount:0+1 line:326 name:qq_at(:,:,:)
+host:0x770145330000 device:0x7700d1bab200 size:5184 presentcount:0+1 line:339 name:dvan(:,:,:)
+host:0x7ffca5565860 device:0x7700d1df0600 size:176 presentcount:1+0 line:81 name:descriptor
+allocated block device:0x76fca9e00000 size:19435520 thread:1
+allocated block device:0x76fcb1000000 size:93312000 thread:1
+allocated block device:0x76fcb6a00000 size:33854976 thread:1
+allocated block device:0x76fcb8c00000 size:423186944 thread:1
+allocated block device:0x76fcd4200000 size:1218777600 thread:1
+allocated block device:0x76ff99b75000 size:72704 thread:1
+allocated block device:0x770051e00000 size:124416 thread:1
+allocated block device:0x770051e1e600 size:124416 thread:1
+allocated block device:0x770051e3cc00 size:124416 thread:1
+allocated block device:0x770064000000 size:16927744 thread:1
+allocated block device:0x770066000000 size:365781504 thread:1
+allocated block device:0x770092000000 size:193649152 thread:1
+allocated block device:0x7700cc000000 size:93312000 thread:1
+allocated block device:0x7700d1a00000 size:1531392 thread:1
+allocated block device:0x7700d1b75e00 size:512 thread:1
+allocated block device:0x7700d1b76000 size:512 thread:1
+allocated block device:0x7700d1b76200 size:512 thread:1
+allocated block device:0x7700d1b76400 size:512 thread:1
+allocated block device:0x7700d1b76600 size:512 thread:1
+allocated block device:0x7700d1b76800 size:512 thread:1
+allocated block device:0x7700d1b76a00 size:3072 thread:1
+allocated block device:0x7700d1b77600 size:512 thread:1
+allocated block device:0x7700d1b77800 size:140288 thread:1
+allocated block device:0x7700d1b99c00 size:512 thread:1
+allocated block device:0x7700d1b99e00 size:70144 thread:1
+allocated block device:0x7700d1bab000 size:512 thread:1
+allocated block device:0x7700d1bab200 size:5632 thread:1
+allocated block device:0x7700d1bac800 size:512 thread:1
+allocated block device:0x7700d1baca00 size:74240 thread:1
+allocated block device:0x7700d1bbec00 size:512 thread:1
+allocated block device:0x7700d1bbfe00 size:216064 thread:1
+allocated block device:0x7700d1bf5e00 size:512 thread:1
+allocated block device:0x7700d1bf6000 size:512 thread:1
+allocated block device:0x7700d1bf6200 size:512 thread:1
+allocated block device:0x7700d1bf6400 size:32256 thread:1
+allocated block device:0x7700d1bfe200 size:512 thread:1
+allocated block device:0x7700d1bfe400 size:512 thread:1
+allocated block device:0x7700d1bfe600 size:512 thread:1
+allocated block device:0x7700d1bfe800 size:512 thread:1
+allocated block device:0x7700d1bfea00 size:512 thread:1
+allocated block device:0x7700d1bfec00 size:512 thread:1
+allocated block device:0x7700d1bfee00 size:512 thread:1
+allocated block device:0x7700d1bff000 size:512 thread:1
+allocated block device:0x7700d1bff200 size:512 thread:1
+allocated block device:0x7700d1bff400 size:512 thread:1
+allocated block device:0x7700d1bff600 size:512 thread:1
+allocated block device:0x7700d1c00000 size:1531392 thread:1
+allocated block device:0x7700d1d75e00 size:216064 thread:1
+allocated block device:0x7700d1daaa00 size:156160 thread:1
+allocated block device:0x7700d1dd0c00 size:124416 thread:1
+allocated block device:0x7700d1df0600 size:512 thread:1
+allocated block device:0x7700d1df0800 size:512 thread:1
+allocated block device:0x7700e0000000 size:46656000 thread:1
+allocated block device:0x7700e2e00000 size:8463872 thread:1
+allocated block device:0x7700e3c00000 size:3074048 thread:1
+allocated block device:0x770108000000 size:50782720 thread:1
+allocated block device:0x77010b200000 size:8463872 thread:1
+allocated block device:0x770122000000 size:16000000 thread:1
+allocated block device:0x770123000000 size:8000000 thread:1
+allocated block device:0x770124000000 size:25391616 thread:1
+allocated block device:0x770125a00000 size:16927744 thread:1
+allocated block device:0x770126c00000 size:8463872 thread:1
+allocated block device:0x7701450fa000 size:512 thread:1
+allocated block device:0x7701450fa200 size:512 thread:1
+allocated block device:0x7701450fa400 size:1024 thread:1
+allocated block device:0x7701450fa800 size:512 thread:1
+allocated block device:0x7701450faa00 size:512 thread:1
+allocated block device:0x7701450fac00 size:512 thread:1
+allocated block device:0x7701450fae00 size:512 thread:1
+allocated block device:0x7701450fb000 size:512 thread:1
+allocated block device:0x7701450fb200 size:512 thread:1
+allocated block device:0x7701450fb400 size:512 thread:1
+allocated block device:0x7701450fb600 size:40448 thread:1
+allocated block device:0x770145105400 size:1024 thread:1
+allocated block device:0x770145105800 size:1024 thread:1
+allocated block device:0x770145105c00 size:512 thread:1
+allocated block device:0x770145105e00 size:512 thread:1
+allocated block device:0x770145106000 size:512 thread:1
+allocated block device:0x770145106200 size:1024 thread:1
+allocated block device:0x770145106600 size:1024 thread:1
+allocated block device:0x770145106a00 size:1024 thread:1
+allocated block device:0x770145106e00 size:130048 thread:1
+allocated block device:0x770145126a00 size:512 thread:1
+allocated block device:0x770145126c00 size:512 thread:1
+allocated block device:0x770145126e00 size:512 thread:1
+allocated block device:0x770145127000 size:512 thread:1
+allocated block device:0x770145127200 size:512 thread:1
+allocated block device:0x770145127400 size:512 thread:1
+allocated block device:0x770145127600 size:512 thread:1
+allocated block device:0x770145127800 size:512 thread:1
+allocated block device:0x770145127a00 size:8704 thread:1
+allocated block device:0x770145129c00 size:8704 thread:1
+allocated block device:0x77014512be00 size:384512 thread:1
+allocated block device:0x770145189c00 size:210944 thread:1
+allocated block device:0x7701451bd400 size:175616 thread:1
+Accelerator Fatal Error: call to cuMemAlloc returned error 2 (CUDA_ERROR_OUT_OF_MEMORY): Out of memory
+ File: /home/des/q-e/PW/src/addusdens.f90
+ Function: addusdens_g:36
+ Line: 130
+
+--------------------------------------------------------------------------
+Primary job  terminated normally, but 1 process returned
+a non-zero exit code. Per user-direction, the job has been aborted.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+mpirun detected that one or more processes exited with non-zero status, thus causing
+the job to be terminated. The first process to do so was:
+
+  Process name: [[9969,1],0]
+  Exit code:    1
+--------------------------------------------------------------------------

@@ -8,9 +8,11 @@ Last modified: 04/11/2026
 
 import shutil
 import re
+import csv
 from pathlib import Path
 
 import numpy as np
+import pandas as pd
 
 from ase.units import Ry, GPa
 
@@ -24,6 +26,10 @@ RY_PER_ANG3_TO_KBAR_CONV = 10 * Ry / GPa
 # Experimental bcc and fcc volumes
 V_PER_ATOM_FE = 11.65
 V_PER_ATOM_AL = 16.6
+
+# Formation energy paths
+FORMATION_E_PATH_FE = "/home/des/cmp-fe-al-phase-diagram/Des/step4_one_atom_supercells/bcc_fe/formation_energy/vc-relax/results.csv"
+FORMATION_E_PATH_AL = "/home/des/cmp-fe-al-phase-diagram/Des/step4_one_atom_supercells/fcc_al/formation_energy/vc-relax/results.csv"
 
 def to_seconds(t: str) -> float:
     """Convert QE time strings like '1h 2m 3.45s' or '12.3s' to seconds."""
@@ -82,3 +88,37 @@ def find_convergence(x, y, tol):
     if idx >= len(y) - 1:                   # only the last point (trivially) passes
         return None
     return x[idx]
+
+def get_formation_energies():
+    """
+    Simple function to get last calculated formation energies in Ry from results file.
+    """
+    fe_df = pd.read_csv(FORMATION_E_PATH_FE)
+    al_df = pd.read_csv(FORMATION_E_PATH_AL)
+
+    return {"Fe": float(fe_df["energy"].iloc[-1]),
+            "Al": float(al_df["energy"].iloc[-1])}
+
+def get_equilibrium_volumes():
+    """
+    Simple function to get last calculated formation energies in Ry from results file.
+    """
+    fe_df = pd.read_csv(FORMATION_E_PATH_FE)
+    al_df = pd.read_csv(FORMATION_E_PATH_AL)
+
+    return {"Fe": float(fe_df["volume"].iloc[-1]),
+            "Al": float(al_df["volume"].iloc[-1])}
+
+def save_nested_dict_csv(results, output_path, index_label="x"):
+    """Save a nested results dict to a csv file. (Claude) """
+    first = next(iter(results.values()))
+    columns = [k for k in first if k != "atoms"] # Skip the atoms column
+
+    with open(output_path, "w", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow([index_label] + columns)
+        for x, res in results.items():
+            writer.writerow([x] + [res[k] for k in columns])
+
+if __name__ == "__main__":
+    print(get_formation_energies())
