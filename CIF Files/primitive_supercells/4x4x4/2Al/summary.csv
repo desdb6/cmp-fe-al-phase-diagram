@@ -1,0 +1,8 @@
+Symmetry rank,spacegroup,al_idx,number,multiplicity,formula,Al ratio
+0,R-3m,"[0, 1]",166,256,Fe62Al2,3.125
+1,R-3m,"[0, 2]",166,128,Fe62Al2,3.125
+2,I4_mmm,"[0, 5]",139,192,Fe62Al2,3.125
+3,C2_m,"[0, 6]",12,768,Fe62Al2,3.125
+4,Fmmm,"[0, 7]",69,384,Fe62Al2,3.125
+5,P4_mmm,"[0, 10]",123,96,Fe62Al2,3.125
+6,I4_1_amd,"[0, 27]",141,192,Fe62Al2,3.125

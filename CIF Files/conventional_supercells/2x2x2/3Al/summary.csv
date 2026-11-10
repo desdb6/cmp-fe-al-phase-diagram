@@ -1,0 +1,7 @@
+Symmetry rank,spacegroup,al_idx,number,multiplicity,formula,Al ratio
+0,Amm2,"[0, 1, 2]",38,192,Fe13Al3,18.75
+1,Cmm2,"[0, 1, 6]",35,192,Fe13Al3,18.75
+2,R-3m,"[0, 1, 14]",166,64,Fe13Al3,18.75
+3,P4_mmm,"[0, 2, 4]",123,48,Fe13Al3,18.75
+4,P4_mmm,"[0, 2, 12]",123,48,Fe13Al3,18.75
+5,Pm-3m,"[0, 6, 10]",221,16,Fe13Al3,18.75
