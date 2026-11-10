@@ -1,0 +1,46 @@
+&CONTROL
+   calculation      = 'scf'
+   tstress          = .true.
+   tprnfor          = .true.
+   pseudo_dir       = '/home/des/cmp-fe-al-phase-diagram/Pseudopotentials'
+/
+&SYSTEM
+   ecutwfc          = 80.0
+   ecutrho          = 800.0
+   occupations      = 'smearing'
+   degauss          = 0.02
+   smearing         = 'mv'
+   ntyp             = 1
+   nat              = 4
+   ibrav            = 0
+/
+&ELECTRONS
+   electron_maxstep = 200
+   conv_thr         = 1e-08
+   mixing_beta      = 0.3
+/
+&IONS
+/
+&CELL
+/
+&FCP
+/
+&RISM
+/
+ATOMIC_SPECIES
+Al 26.9815385 Al.us.pbe.z_3.ld1.psl.v1.0.0-low
+
+K_POINTS automatic
+3 3 3  0 0 0
+
+CELL_PARAMETERS angstrom
+6.41947823212800 0.00000000000000 0.00000000000000
+0.00000000000000 6.41947823212800 0.00000000000000
+0.00000000000000 0.00000000000000 6.41947823212800
+
+ATOMIC_POSITIONS angstrom
+Al 0.0000000000 0.0000000000 0.0000000000  
+Al 0.0000000000 3.2097391161 3.2097391161  
+Al 3.2097391161 0.0000000000 3.2097391161  
+Al 3.2097391161 3.2097391161 0.0000000000  
+

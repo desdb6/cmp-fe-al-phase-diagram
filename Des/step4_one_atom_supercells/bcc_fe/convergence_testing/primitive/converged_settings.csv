@@ -1,6 +1,6 @@
 parameter,value,unit
-ecutwfc,138.0,Ry
-ecutrho,611.0,Ry
+ecutwfc,142.0,Ry
+ecutrho,800.0,Ry
 kmesh,15,per direction
 variable converged,pressure,kbar
 tolerance ecutwfc,0.5,kbar

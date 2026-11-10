@@ -7,7 +7,7 @@
    pseudo_dir       = '/home/des/cmp-fe-al-phase-diagram/Pseudopotentials'
 /
 &SYSTEM
-   ecutwfc          = 120.0
+   ecutwfc          = 142.0
    ecutrho          = 1500.0
    occupations      = 'smearing'
    degauss          = 0.02
@@ -38,7 +38,7 @@ ATOMIC_SPECIES
 Fe  55.845 Fe.paw.pbe.z_16.ld1.psl.v0.2.1
 
 K_POINTS automatic
-8 8 8  0 0 0
+11 11 11  0 0 0
 
 CELL_PARAMETERS angstrom
 -1.42808912289948 1.42808912289948 1.42808912289948

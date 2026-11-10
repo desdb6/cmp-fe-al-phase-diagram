@@ -57,7 +57,7 @@ def fcc_al_conventional(vol: float) -> ase.atoms:
 def fcc_al_primitive(vol: float) -> ase.atoms:
     """Generate a primitive FCC alimunium atoms object."""
     lattice_parameter = (4 * vol) ** (1/3)
-    atoms = bulk('Al', 'fcc', a=lattice_parameter, cubic=True)
+    atoms = bulk('Al', 'fcc', a=lattice_parameter)
     return atoms
 
 def d03_fe3al(lattice_parameter: float, magmom: float = 0.5) -> ase.Atoms:
