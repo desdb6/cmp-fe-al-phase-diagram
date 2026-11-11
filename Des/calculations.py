@@ -241,6 +241,8 @@ def run_calculation(structure: Atoms, settings: QESettings, calc_dir: str,
     e_form = (e_calculated - e_ref) / n_atoms
 
     results = {
+        "formula": chemical_formula(structure),
+        "space group": space_group(structure),
         "energy": e_calculated, # Ry
         "formation energy": e_form, # Ry
         "volume": read_volume(calc_dir), # Ang**3

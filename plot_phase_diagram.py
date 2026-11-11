@@ -94,5 +94,6 @@ ax.set_ylabel(r"$E_{\mathrm{form}}$ (Ry/atom)", fontsize=16)
 ax.grid(alpha=0.6)
 
 plt.savefig("Phase Diagram.png", dpi=360)
+fig.savefig("Phase Diagram.pdf", bbox_inches="tight")   # vector, good for the report
 
 plt.show()

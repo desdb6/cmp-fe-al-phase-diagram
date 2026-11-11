@@ -31,6 +31,7 @@ def read_cif(path: str, magmom: float = 0.5) -> Atoms:
         )
     return atoms
 
+
 def vis_atoms(atoms: Atoms) -> None:
     """Visualize Atoms object."""
     view(atoms)

@@ -7,6 +7,8 @@ Last modified: 04/11/2026
 """
 import os
 from ase.io import read
+from ase import Atoms
+import spglib
 
 from utils import *
 
@@ -47,6 +49,7 @@ def read_time(calc_dir):
     matches = re.findall(r"PWSCF\s*:\s*.+?\s+CPU\s+(.+?)\s+WALL", text)
     return to_seconds(matches[-1]) if matches else None
 
+
 def read_vcrelax(calc_dir: str):
     """Return all energies and volumes from a vcrelax calculation"""
     images = read(calc_dir / "espresso.pwo", format="espresso-out", index=":")
@@ -56,3 +59,18 @@ def read_vcrelax(calc_dir: str):
     energies  = [a.get_potential_energy() / Ry for a in images]  # Ry
     pressures = [-np.trace(a.get_stress(voigt=False)) / 3 / GPa * 10 for a in images]  # kbar
     return volumes, energies, pressures
+
+
+def space_group(atoms: Atoms, symprec: float = 1e-5) -> str:
+    """Return the international space group symbol of an Atoms object."""
+    cell = (atoms.cell[:], atoms.get_scaled_positions(), atoms.numbers)
+    sym = spglib.get_symmetry_dataset(cell, symprec=symprec)
+    if sym is None:
+        raise ValueError("spglib could not determine the symmetry (try a larger symprec)")
+    return sym.international
+
+
+def chemical_formula(atoms: Atoms) -> str:
+    """Return the reduced chemical formula, e.g. 'Fe7Al'."""
+    return atoms.get_chemical_formula(mode="metal")
+
