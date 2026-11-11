@@ -8,7 +8,7 @@ Last modified: 04/11/2026
 
 from pathlib import Path
 import csv
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 import matplotlib.pyplot as plt
 import pandas as pd
 
@@ -89,6 +89,40 @@ class QESettings:
                 "cell_dofree": self.cell_dofree,
             }
         return data
+
+# Standard settings
+SCF_SETTINGS_HIGH = QESettings(
+    calc_type='scf',
+    ecutwfc=134,
+    ecutrho=1200,
+    kmesh=(9, 9, 9)
+)
+
+SCF_SETTINGS_LOW = QESettings(
+    calc_type='scf',
+    ecutwfc=120,
+    ecutrho=800,
+    kmesh=(6, 6, 6)
+)
+
+VC_RELAX_SETTINGS_HIGH = QESettings(
+    calc_type='vc-relax',
+    ecutwfc=134,
+    ecutrho=1200,
+    kmesh=(9, 9, 9),
+    target_press=0,
+    forc_conv_thr=5e-4
+)
+
+VC_RELAX_SETTINGS_LOW = QESettings(
+    calc_type='vc-relax',
+    ecutwfc=120,
+    ecutrho=800,
+    kmesh=(6, 6, 6),
+    target_press=0,
+    forc_conv_thr=5e-4
+)
+
 
 # Class for EoS fits
 class EoSfit:
@@ -199,8 +233,16 @@ def run_calculation(structure: Atoms, settings: QESettings, calc_dir: str,
     # Always read from file, for relax/vc-relax this is the final structure
     final = read(output, format="espresso-out")
 
+    refs = get_formation_energies()               # Ry per atom
+    symbols = structure.get_chemical_symbols()
+    n_atoms = len(symbols)
+    e_ref = sum(refs[s] for s in symbols)         # also works for Fe-Al mixtures
+    e_calculated = read_energy(calc_dir)
+    e_form = (e_calculated - e_ref) / n_atoms
+
     results = {
-        "energy": read_energy(calc_dir), # Ry
+        "energy": e_calculated, # Ry
+        "formation energy": e_form, # Ry
         "volume": read_volume(calc_dir), # Ang**3
         "pressure": read_pressure(calc_dir), # kbar
         "magnetization": read_total_magnetization(calc_dir), # muB/cell
@@ -327,7 +369,7 @@ def convergence_test(
     return {"ecutwfc": conv_ecutwfc, "ecutrho": conv_ecutrho, "kmesh": conv_kmesh}
 
 def scf_volume_sweep(
-    structure: ase.Atoms,
+    structure: Atoms,
     settings: QESettings,
     calc_dir: str,
     starting_volume: float,
@@ -352,8 +394,31 @@ def scf_volume_sweep(
 
     return results
 
+def vcrelax_volume_sweep(
+    structure: Atoms,
+    settings: QESettings,
+    calc_dir: str,
+    pressure_bound: float = 100,
+    n_pressures: int = 8
+    ):
+    """Performs a volume sweep using vcrelax settings in order to optimise the atom positions."""
+    if settings.calc_type != "vc-relax":
+        raise ValueError("Please input an vc-relax settings file to perform a vc-relax volume sweep.")
+
+    # Volume sweep
+    pressures = np.linspace(-pressure_bound, pressure_bound, n_pressures)
+
+    results = {}
+    for pressure in pressures:
+        p_settings = replace(settings, target_press=float(pressure))
+        output_dir = calc_dir + f"/pressure_{pressure:2g}"
+        results[pressure] = run_calculation(structure, p_settings, output_dir)
+    save_nested_dict_csv(results, f"{calc_dir}/results.csv", index_label="pressure")
+
+    return results
+
 def full_analysis(
-    structure: ase.Atoms,
+    structure: Atoms,
     settings_vcrelax: QESettings,
     settings_sweep: QESettings,
     calc_dir: str

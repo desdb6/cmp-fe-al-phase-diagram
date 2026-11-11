@@ -12,7 +12,7 @@ import numpy as np
 from ase.visualize import view
 from ase import Atoms
 from ase.build import bulk
-from ase.io import write
+from ase.io import write, read
 import spglib
 from itertools import combinations
 
@@ -23,9 +23,18 @@ def write_cif(atoms: Atoms, path: str) -> None:
     write(path, atoms)
 
 
+def read_cif(path: str, magmom: float = 0.5) -> Atoms:
+    """Generate an Atoms object from a cif file."""
+    atoms = read(path)
+    atoms.set_initial_magnetic_moments(
+            [magmom if s == "Fe" else 0.0 for s in atoms.get_chemical_symbols()]
+        )
+    return atoms
+
 def vis_atoms(atoms: Atoms) -> None:
     """Visualize Atoms object."""
     view(atoms)
+
 
 def set_volume(atoms, target_volume):
     """Return a copy of atoms with the cell isotropically scaled to target_volume (A^3). (Claude)"""
@@ -33,6 +42,7 @@ def set_volume(atoms, target_volume):
     factor = (target_volume / new.get_volume()) ** (1 / 3)
     new.set_cell(new.cell.array * factor, scale_atoms=True)
     return new
+
 
 def fe7al(lattice_parameter: float) -> Atoms:
     """Generate an Atoms object for an Fe7Al structure"""
