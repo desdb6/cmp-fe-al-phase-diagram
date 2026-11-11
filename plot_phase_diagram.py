@@ -1,10 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-from matplotlib.offsetbox import TextArea, HPacker, AnnotationBbox
+from matplotlib.offsetbox import TextArea, HPacker, VPacker, AnnotationBbox
 from matplotlib.legend_handler import HandlerTuple
 
-DATA_PATH = r"C:\Users\desde\Documents\GitHub\cmp-fe-al-phase-diagram\Des\step5_numbercrunching\phase_diagram_data.csv"
+DATA_PATH = "phase_diagram_data.csv"
 
 RED = "#cc0101"
 YELLOW = "#f1ed00"
@@ -61,13 +61,20 @@ for idx, row in df.iterrows():
     if not parts:
         continue
 
-    box = HPacker(children=parts, align="baseline", pad=0, sep=2)
+    line = HPacker(children=parts, align="baseline", pad=0, sep=2)
+    rows = [line]
+
+    if pd.notna(row.get("Date")):
+        rows.append(TextArea(str(row["Date"]), textprops=dict(fontsize=6, color="gray")))
+
+    box = VPacker(children=rows, align="left", pad=0, sep=1)
 
     ab = AnnotationBbox(
         box, (row["Al fraction"], row["Formation energy (Ry)"]),
-        xybox=(12, 8), boxcoords="offset points",   # offset from the point
-        box_alignment=(0, 0.5),                     # left edge, vertically centred
+        xybox=(12, 8), boxcoords="offset points",
+        box_alignment=(0, 0.5),
         frameon=False,
+        annotation_clip=False,
     )
     ax.add_artist(ab)
 
@@ -85,5 +92,7 @@ ax.set_xlabel("% Al", fontsize=16)
 ax.xaxis.set_label_position("top")
 ax.set_ylabel(r"$E_{\mathrm{form}}$ (Ry/atom)", fontsize=16)
 ax.grid(alpha=0.6)
+
+plt.savefig("Phase Diagram.png", dpi=360)
 
 plt.show()

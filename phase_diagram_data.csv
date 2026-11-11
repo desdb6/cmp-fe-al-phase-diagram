@@ -1,0 +1,4 @@
+Al fraction,Chemical formula,Space group,Additional label,Formation energy (Ry),Spin polarized,Date,Include in plot
+0,bcc-Fe,None,None,0,True,None,True
+25,Fe3Al,P4/mmm,Des,-0.008668466812281395,True,11/11/2026,True
+25,Fe3Al,R-3m,Des,-0.007752631884955008,True,11/11/2026,True
