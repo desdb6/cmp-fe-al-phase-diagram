@@ -23,7 +23,7 @@ def write_cif(atoms: Atoms, path: str) -> None:
     write(path, atoms)
 
 
-def read_cif(path: str, magmom: float = 0.5) -> Atoms:
+def read_cif(path: str, magmom: float = 0.2) -> Atoms:
     """Generate an Atoms object from a cif file."""
     atoms = read(path)
     atoms.set_initial_magnetic_moments(
@@ -52,14 +52,14 @@ def fe7al(lattice_parameter: float) -> Atoms:
     return atoms
 
 
-def bcc_fe_conventional(vol: float, magmom: float = 0.5) -> Atoms:
+def bcc_fe_conventional(vol: float, magmom: float = 0.2) -> Atoms:
     """Generate a conventional BCC iron atoms object"""
     lattice_parameter = vol ** (1/3)
     atoms = bulk('Fe', 'bcc', a=lattice_parameter, cubic=True)
     atoms.set_initial_magnetic_moments([magmom] * len(atoms))
     return atoms
 
-def bcc_fe_primitive(vol: float, magmom: float = 0.5) -> Atoms:
+def bcc_fe_primitive(vol: float, magmom: float = 0.2) -> Atoms:
     """Generate a primitive BCC iron atoms object"""
     lattice_parameter = (2 * vol) ** (1/3)
     atoms = bulk('Fe', 'bcc', a=lattice_parameter)
@@ -78,7 +78,7 @@ def fcc_al_primitive(vol: float) -> Atoms:
     atoms = bulk('Al', 'fcc', a=lattice_parameter)
     return atoms
 
-def d03_fe3al(lattice_parameter: float, magmom: float = 0.5) -> Atoms:
+def d03_fe3al(lattice_parameter: float, magmom: float = 0.2) -> Atoms:
     """
     Generate an Atoms object for an D03-Fe3Al structure
     WARNING: the lattice parameter input is the length of 1 bcc subsell, not the entire supercell
@@ -99,7 +99,7 @@ def d03_fe3al(lattice_parameter: float, magmom: float = 0.5) -> Atoms:
     )
     return atoms
 
-def supercell_primitive_one_al(n: int, vol: float, magmom: float = 0.5) -> Atoms:
+def supercell_primitive_one_al(n: int, vol: float, magmom: float = 0.2) -> Atoms:
     """
     Generate an nxnxn supercell of primitive bcc Fe unit cells,
     where one atom has been changed for Al.
@@ -112,7 +112,7 @@ def supercell_primitive_one_al(n: int, vol: float, magmom: float = 0.5) -> Atoms
     )
     return atoms
 
-def supercell_conventional_one_al(n: int, vol: float, magmom: float = 0.5) -> Atoms:
+def supercell_conventional_one_al(n: int, vol: float, magmom: float = 0.2) -> Atoms:
     """
     Generate an nxnxn supercell of conventional bcc Fe unit cells,
     where one atom has been changed for Al.
@@ -125,7 +125,7 @@ def supercell_conventional_one_al(n: int, vol: float, magmom: float = 0.5) -> At
     )
     return atoms
 
-def gen_sym_ineq_supercells(n_cells: int, n_subs: int, vol_per_atom: float = None, magmom: float = 0.5, cell_type: str = "conventional") -> dict:
+def gen_sym_ineq_supercells(n_cells: int, n_subs: int, vol_per_atom: float = None, magmom: float = 0.2, cell_type: str = "conventional") -> dict:
     """
     Generate a dictionary of all symmetry-inequivalent configurations of a n_cells x n_cells x n_cells supercell with n_subs substitutions.
 

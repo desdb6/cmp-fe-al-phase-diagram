@@ -46,7 +46,8 @@ class QESettings:
     target_press: float | None = None   # Target pressure (kbar) for vc-relax
     press_conv_thr: float = 0.5         # Pressure threshold (kbar) for vc-relax
     cell_dofree: str = "all"            # Cell degrees of freedom for vc-relax
-
+    ion_dynamics : str = 'bfgs'         # Ion dynamics for vc-relax
+    cell_dynamics: str  = 'bfgs'        # Cell dynamics for vc-relax
     def __post_init__(self):
         # Calculation type check
         if self.calc_type not in ["scf", "relax", "vc-relax"]:
@@ -86,8 +87,10 @@ class QESettings:
             data["cell"] = {
                 "press": self.target_press,
                 "press_conv_thr": self.press_conv_thr,
+                "cell_dynamics": self.cell_dynamics,
                 "cell_dofree": self.cell_dofree,
             }
+            data["ions"]={"ion_dynamics": self.ion_dynamics}
         return data
 
 # Standard settings
