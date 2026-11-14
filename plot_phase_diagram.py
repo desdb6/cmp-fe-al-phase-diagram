@@ -22,19 +22,19 @@ fig, ax = plt.subplots(figsize=(16, 10))
 outer = ax.scatter(
     x=spin_polarized_df["Al fraction"],
     y=spin_polarized_df["Formation energy (Ry)"],
-    s=100, color=RED, zorder=2, clip_on=False
+    s=60, color=RED, zorder=2, clip_on=False
 )
 inner = ax.scatter(
     x=spin_polarized_df["Al fraction"],
     y=spin_polarized_df["Formation energy (Ry)"],
-    s=40, color=YELLOW, zorder=3, clip_on=False
+    s=20, color=YELLOW, zorder=3, clip_on=False
 )
 
 # Non polarized data
 non_pol = ax.scatter(
     x=non_spin_polarized_df["Al fraction"],
     y=non_spin_polarized_df["Formation energy (Ry)"],
-    s=100, color=RED, zorder=2, clip_on=False
+    s=60, color=RED, zorder=2, clip_on=False
 )
 
 ax.legend(

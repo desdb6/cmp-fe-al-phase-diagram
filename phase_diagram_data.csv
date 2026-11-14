@@ -20,3 +20,6 @@ Al fraction,Chemical formula,Space group,Additional label,Formation energy (Ry),
 25,Fe3Al,Pm-3m,Des HPC,-0.01073538352329706,True,14/11/2026,True
 25,Fe3Al,R-3m,Des HPC,-0.00943362800157388,True,14/11/2026,True
 25,Fe3Al,P4/mmm_1,Des HPC + restart,-0.011172780988601971,True,14/11/2026,True
+25,Fe3Al,P4/mmm_2,Des HPC + restart,-0.014068165133892307,True,14/11/2026,True
+25,Fe3Al,P4_2/mmc,Des HPC + restart,-0.010427006672784955,True,14/11/2026,True
+25,Fe3Al,P4/mmm_6,Des HPC + restart,-0.011908492805247306,True,14/11/2026,True
