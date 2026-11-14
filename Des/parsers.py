@@ -24,11 +24,13 @@ def read_total_magnetization(calc_dir):
                 val = float(line.split("=")[1].split()[0])
     return val
 
+
 def read_energy(calc_dir):
     """Wrapper for energy reading."""
     output = calc_dir / "espresso.pwo"
     final = read(output, format="espresso-out")
     return final.get_potential_energy() * EV_TO_RY_CONV
+
 
 def read_volume(calc_dir):
     """Wrapper for volume reading."""
@@ -36,12 +38,14 @@ def read_volume(calc_dir):
     final = read(output, format="espresso-out")
     return final.get_volume()
 
+
 def read_pressure(calc_dir):
     """Wrapper for pressure reading."""
     output = calc_dir / "espresso.pwo"
     final = read(output, format="espresso-out")
     stress = final.get_stress(voigt=False)
     return -np.trace(stress) / 3 * 10 / GPa
+
 
 def read_time(calc_dir):
     """Return the wall time in seconds from the final PWSCF line."""
