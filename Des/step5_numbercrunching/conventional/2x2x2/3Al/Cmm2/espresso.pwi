@@ -1,0 +1,69 @@
+&CONTROL
+   calculation      = 'vc-relax'
+   tstress          = .true.
+   tprnfor          = .true.
+   etot_conv_thr    = 1e-05
+   forc_conv_thr    = 0.0005
+   pseudo_dir       = '/home/des/cmp-fe-al-phase-diagram/Pseudopotentials'
+/
+&SYSTEM
+   ecutwfc          = 120.0
+   ecutrho          = 800.0
+   occupations      = 'smearing'
+   degauss          = 0.02
+   smearing         = 'mv'
+   nspin            = 2
+   starting_magnetization(1) = 0.0
+   starting_magnetization(2) = 0.2
+   ntyp             = 2
+   nat              = 16
+   ibrav            = 0
+/
+&ELECTRONS
+   electron_maxstep = 200
+   conv_thr         = 1e-08
+   mixing_beta      = 0.3
+/
+&IONS
+   ion_dynamics     = 'bfgs'
+/
+&CELL
+   cell_dynamics    = 'bfgs'
+   press            = 0
+   press_conv_thr   = 0.5
+   cell_dofree      = 'all'
+/
+&FCP
+/
+&RISM
+/
+ATOMIC_SPECIES
+Al  26.9815385 Al.us.pbe.z_3.ld1.psl.v1.0.0-low
+Fe  55.845 Fe.paw.pbe.z_16.ld1.psl.v0.2.1
+
+K_POINTS automatic
+6 6 6  0 0 0
+
+CELL_PARAMETERS angstrom
+5.86019358933661 0.00000000000000 0.00000000000000
+0.00000000000000 5.86019358933661 0.00000000000000
+0.00000000000000 0.00000000000000 5.86019358933661
+
+ATOMIC_POSITIONS angstrom
+Al  0.0000000000 0.0000000000 0.0000000000  
+Al  1.4650483973 1.4650483973 1.4650483973  
+Fe  0.0000000000 0.0000000000 2.9300967947  
+Fe  1.4650483973 1.4650483973 4.3951451920  
+Fe  0.0000000000 2.9300967947 0.0000000000  
+Fe  1.4650483973 4.3951451920 1.4650483973  
+Al  0.0000000000 2.9300967947 2.9300967947  
+Fe  1.4650483973 4.3951451920 4.3951451920  
+Fe  2.9300967947 0.0000000000 0.0000000000  
+Fe  4.3951451920 1.4650483973 1.4650483973  
+Fe  2.9300967947 0.0000000000 2.9300967947  
+Fe  4.3951451920 1.4650483973 4.3951451920  
+Fe  2.9300967947 2.9300967947 0.0000000000  
+Fe  4.3951451920 4.3951451920 1.4650483973  
+Fe  2.9300967947 2.9300967947 2.9300967947  
+Fe  4.3951451920 4.3951451920 4.3951451920  
+

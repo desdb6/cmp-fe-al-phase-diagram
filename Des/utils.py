@@ -6,6 +6,7 @@ Email: des.deborger@student.uantwerpen.be
 Last modified: 04/11/2026
 """
 
+import os
 import shutil
 import re
 import csv
@@ -28,8 +29,9 @@ V_PER_ATOM_FE = 11.65
 V_PER_ATOM_AL = 16.6
 
 # Formation energy paths
-FORMATION_E_PATH_FE = "/home/des/cmp-fe-al-phase-diagram/Des/step4_one_atom_supercells/bcc_fe/formation_energy/vc-relax/results.csv"
-FORMATION_E_PATH_AL = "/home/des/cmp-fe-al-phase-diagram/Des/step4_one_atom_supercells/fcc_al/formation_energy/vc-relax/results.csv"
+PROJECT_ROOT = Path(os.environ.get("CMP_ROOT", "/home/des/cmp-fe-al-phase-diagram"))
+FORMATION_E_PATH_FE = PROJECT_ROOT / "Formation_Energies/bccFe/results.csv"
+FORMATION_E_PATH_AL = PROJECT_ROOT / "Formation_Energies/fccAl/results.csv"
 
 def to_seconds(t: str) -> float:
     """Convert QE time strings like '1h 2m 3.45s' or '12.3s' to seconds."""

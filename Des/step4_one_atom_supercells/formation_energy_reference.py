@@ -17,7 +17,7 @@ settings = QESettings( # Very high precision settings
     forc_conv_thr=5e-4
 )
 
-results = run_calculation(structure, settings, calc_dir="/home/des/cmp-fe-al-phase-diagram/Des/step4_one_atom_supercells/bcc_fe/formation_energy/vc-relax", overwrite=True)
+results = run_calculation(structure, settings, calc_dir=PROJECT_ROOT / "Formation_Energies/bccFe", overwrite=True)
 
 # FCC Al
 structure = fcc_al_primitive(vol=V_PER_ATOM_AL) # Primitive is cheaper to compute 
@@ -30,4 +30,4 @@ settings = QESettings( # Very high precision settings
     forc_conv_thr=5e-4
 )
 
-results = run_calculation(structure, settings, calc_dir="/home/des/cmp-fe-al-phase-diagram/Des/step4_one_atom_supercells/fcc_al/formation_energy/vc-relax", overwrite=True)
+results = run_calculation(structure, settings, calc_dir=PROJECT_ROOT / "Formation_Energies/fccAl", overwrite=True)
