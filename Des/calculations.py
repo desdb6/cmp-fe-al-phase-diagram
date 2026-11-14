@@ -6,6 +6,7 @@ Email: des.deborger@student.uantwerpen.be
 Last modified: 04/11/2026
 """
 
+import os
 from pathlib import Path
 import csv
 from dataclasses import dataclass, replace
@@ -20,7 +21,8 @@ from utils import *
 from crystal_builder import *
 
 # Pseudopotential paths
-PSEUDO_DIR = "/home/des/cmp-fe-al-phase-diagram/Pseudopotentials"
+PSEUDO_DIR = str(PROJECT_ROOT / "Pseudopotentials")
+PW_COMMAND = os.environ.get("PW_COMMAND", "mpirun -np 1 /home/des/q-e/bin/pw.x")
 PSEUDOS = {"Fe": "Fe.paw.pbe.z_16.ld1.psl.v0.2.1",
            "Al": "Al.us.pbe.z_3.ld1.psl.v1.0.0-low"}
 
@@ -190,7 +192,7 @@ def parse_qe_settings(structure: Atoms, settings: QESettings, calc_dir: str) -> 
     """
     Function to parse settings in QESettings object to Espresso object to generate calculator.
     """
-    profile = EspressoProfile(command="mpirun -np 1 /home/des/q-e/bin/pw.x", pseudo_dir=PSEUDO_DIR)
+    profile = EspressoProfile(command=PW_COMMAND, pseudo_dir=PSEUDO_DIR)
 
     # Settings from the dataclass (depends on calc_type)
     input_data = settings.to_input_data()
@@ -472,6 +474,51 @@ def full_analysis(
     }
     save_result_csv(summary, Path(calc_dir) / "formation_energy.csv")
     return summary
+
+def last_geometry_from_pwo(pwo_path, reference: Atoms | None = None) -> Atoms:
+    """
+    Read the last CELL_PARAMETERS / ATOMIC_POSITIONS blocks (the geometry QE proposed
+    for the next ionic step) from a pw.x output, also from an unfinished run.
+    Both blocks are expected in Angstrom (as in your vc-relax output).
+
+    reference: the original structure; its initial magnetic moments are copied,
+    because they are not stored in the output file (same atom order assumed).
+    """
+    lines = Path(pwo_path).read_text().splitlines()
+
+    cell_idx = max(i for i, l in enumerate(lines) if l.startswith("CELL_PARAMETERS"))
+    pos_idx = max(i for i, l in enumerate(lines) if l.startswith("ATOMIC_POSITIONS"))
+    if "angstrom" not in lines[cell_idx] or "angstrom" not in lines[pos_idx]:
+        raise ValueError("Expected CELL_PARAMETERS and ATOMIC_POSITIONS in angstrom.")
+
+    cell = np.array([[float(x) for x in lines[cell_idx + k].split()] for k in (1, 2, 3)])
+
+    symbols, positions = [], []
+    for line in lines[pos_idx + 1:]:
+        parts = line.split()
+        if len(parts) < 4:                      # blank line / next section -> stop
+            break
+        try:
+            xyz = [float(x) for x in parts[1:4]]
+        except ValueError:
+            break
+        symbols.append(parts[0])
+        positions.append(xyz)
+
+    atoms = Atoms(symbols=symbols, positions=positions, cell=cell, pbc=True)
+
+    if reference is not None:
+        if reference.get_chemical_symbols() != atoms.get_chemical_symbols():
+            raise ValueError("Atom order/species differ from the reference structure.")
+        atoms.set_initial_magnetic_moments(reference.get_initial_magnetic_moments())
+    return atoms
+
+
+def restart_vcrelax(structure: Atoms, settings: QESettings, old_dir: str, new_dir: str) -> dict:
+    """Start a new vc-relax from the last geometry of an unfinished run in old_dir."""
+    start = last_geometry_from_pwo(Path(old_dir) / "espresso.pwo", reference=structure)
+    print(f"Restarting from V = {start.get_volume():.3f} A^3")
+    return run_calculation(start, settings, new_dir)
 
 if __name__ == "__main__":
     primitive_fe7al = supercell_primitive_one_al(n=2, vol=7*V_PER_ATOM_FE + V_PER_ATOM_AL)
