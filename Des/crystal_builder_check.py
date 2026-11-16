@@ -2,7 +2,7 @@
 Run in the folder containing crystal_builder_edit.py and utils.py:  python check_symmetry.py"""
 import glob, itertools, os, tempfile
 import numpy as np, spglib
-import crystal_builder_edit as cb
+import Des.crystal_builder as cb
 
 # Rotations that pw.x tests in the Cartesian frame: 24 cubic + 12 hexagonal (each also times inversion)
 cands = []
