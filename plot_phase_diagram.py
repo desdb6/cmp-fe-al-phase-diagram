@@ -4,6 +4,7 @@ import pandas as pd
 from matplotlib.artist import Artist
 from matplotlib.offsetbox import TextArea, HPacker, VPacker, AnnotationBbox
 from matplotlib.legend_handler import HandlerTuple
+from scipy.spatial import ConvexHull
 
 DATA_PATH = "phase_diagram_data.csv"
 
@@ -38,9 +39,33 @@ non_pol = ax.scatter(
     s=60, color=RED, zorder=2, clip_on=False
 )
 
+# Convex hull (pure elements have E_form = 0 by definition)
+ref_x = [0.0, 100.0]
+ref_y = [0.0, 0.0]
+hull_x = np.concatenate([df["Al fraction"].to_numpy(), ref_x])
+hull_y = np.concatenate([df["Formation energy (Ry)"].to_numpy(), ref_y])
+
+# x is in %, y is in Ry: rescale x to a fraction so Qhull's tolerances behave
+points = np.column_stack([hull_x / 100, hull_y])
+ch = ConvexHull(points)
+
+# Keep only the lower facets: outward normal has a negative y-component
+lower_simplices = ch.simplices[ch.equations[:, 1] < -1e-12]
+hull_idx = np.unique(lower_simplices.ravel())
+hull = np.column_stack([hull_x[hull_idx], hull_y[hull_idx]])
+hull = hull[np.argsort(hull[:, 0])]
+
+ax.scatter(hull[:, 0], hull[:, 1], s=140, facecolors="none",
+           edgecolors="black", lw=1.2, zorder=4, clip_on=False)
+
+hull_line, = ax.plot(
+    hull[:, 0], hull[:, 1],
+    color="black", lw=1.2, ls="--", zorder=1,
+)
+
 ax.legend(
-    [(outer, inner), non_pol],
-    ["Spin polarized", "Non spin polarized"],
+    [(outer, inner), non_pol, hull_line],
+    ["Spin polarized", "Non spin polarized", "Convex hull"],
     handler_map={tuple: HandlerTuple(ndivide=1)},
     loc="lower right",
     fontsize=12,
