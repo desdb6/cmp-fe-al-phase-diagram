@@ -79,6 +79,7 @@ for idx, row in df.iterrows():
     )
     ax.add_artist(ab)
 
+
 # Set limits
 ax.set_xlim(0, 25)
 ax.margins(y=0.5)
