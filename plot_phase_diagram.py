@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+from matplotlib.artist import Artist
 from matplotlib.offsetbox import TextArea, HPacker, VPacker, AnnotationBbox
 from matplotlib.legend_handler import HandlerTuple
 
@@ -53,7 +54,7 @@ styles = [
 ]
 
 for idx, row in df.iterrows():
-    parts = [
+    parts: list[Artist] = [
         TextArea(str(row[col]), textprops=dict(fontsize=fs, color=color))
         for col, fs, color in styles
         if pd.notna(row[col])
@@ -62,7 +63,7 @@ for idx, row in df.iterrows():
         continue
 
     line = HPacker(children=parts, align="baseline", pad=0, sep=2)
-    rows = [line]
+    rows: list[Artist] = [line]
 
     if pd.notna(row.get("Date")):
         rows.append(TextArea(str(row["Date"]), textprops=dict(fontsize=6, color="gray")))
