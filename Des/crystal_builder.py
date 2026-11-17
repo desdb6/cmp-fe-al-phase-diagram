@@ -340,5 +340,5 @@ def write_results_ineq_supercells(struct_dict: dict, output_dir: str):
     save_nested_dict_csv(renumbered, os.path.join(output_dir, "summary.csv"), index_label="Symmetry rank")
 
 if __name__ == "__main__":
-    structs = gen_sym_ineq_supercells(4, 4, (2 * V_PER_ATOM_AL + 6* V_PER_ATOM_FE) / 8, cell_type="primitive")
-    # write_results_ineq_supercells(structs, output_dir=r"C:\Users\desde\Documents\GitHub\cmp-fe-al-phase-diagram\CIF Files\primitive_supercells\2x2x2")
+    structs = gen_sym_ineq_supercells(3, 6, (6 * V_PER_ATOM_AL + 21* V_PER_ATOM_FE) / 8, cell_type="primitive")
+    # write_results_ineq_supercells(structs, output_dir=r"C:\Users\desde\Documents\GitHub\cmp-fe-al-phase-diagram\CIF Files\primitive_supercells\3x3x3\6Al")
