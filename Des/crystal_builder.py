@@ -4,9 +4,23 @@ Crystal structure generation for quantum espresso scripting
 Author: Des De Borger
 Email: des.deborger@student.uantwerpen.be
 Last modified: 04/11/2026
+
+Edits (16/11/2026):
+  - NEW align_to_standard_orientation(): rigidly rotates cell + positions into spglib's
+    standard Cartesian frame, so pw.x can detect the full space-group symmetry.
+  - read_cif() now calls it. Reason: a CIF only stores a, b, c, alpha, beta, gamma and
+    fractional coordinates, so ASE rebuilds the cell in a generic orientation (a1 along x,
+    a2 in the xy-plane) when reading it back. For primitive supercells (bcc 109.47 deg
+    rhombohedral cells, fcc primitive, ...) the symmetry axes then no longer coincide with
+    the Cartesian axes, and pw.x (which only tests cubic/hexagonal rotations in the
+    Cartesian frame) finds only 2 of the e.g. 16 operations.
+  - write_results_ineq_supercells(): summary.csv now uses the ranked/renamed dict so it
+    matches the cif file names; f-string quotes fixed (works on Python < 3.12 as well).
 """
 
 import os
+from typing import Optional
+
 import numpy as np
 
 from ase.visualize import view
@@ -23,9 +37,50 @@ def write_cif(atoms: Atoms, path: str) -> None:
     write(path, atoms)
 
 
-def read_cif(path: str, magmom: float = 0.2) -> Atoms:
-    """Generate an Atoms object from a cif file."""
+def align_to_standard_orientation(atoms: Atoms, symprec: float = 1e-4) -> Atoms:
+    """
+    Rigidly rotate cell and positions into spglib's standard Cartesian frame for the
+    structure's space group (cubic axes along x,y,z; hexagonal/trigonal c along z;
+    tetragonal c along z; orthorhombic axes along x,y,z; monoclinic unique axis b).
+
+    Only a rotation is applied: the cell stays the same primitive supercell (same lattice
+    vectors up to rotation, same fractional coordinates, same volume), so k-meshes and atom
+    order are unchanged. It cannot create symmetry that is not there: a P1 structure stays P1.
+
+    Use on undistorted starting structures only (not on relaxed/restarted geometries).
+    """
+    cell = (
+        np.asarray(atoms.cell, dtype=float).tolist(),
+        np.asarray(atoms.get_scaled_positions(), dtype=float).tolist(),
+        np.asarray(atoms.numbers, dtype=int).tolist(),
+    )
+    dataset = spglib.get_symmetry_dataset(cell, symprec=symprec)
+    if dataset is None:
+        raise ValueError("spglib could not determine the symmetry of this structure")
+    rotation = np.asarray(dataset.std_rotation_matrix, dtype=float)  # rigid rotation to the standard frame
+    new = atoms.copy()
+    new.set_cell(np.asarray(atoms.cell, dtype=float) @ rotation.T, scale_atoms=True)  # rows = lattice vectors
+    return new
+
+
+def read_cif(path: str, magmom: float = 0.2, align: bool = True) -> Atoms:
+    """
+    Generate an Atoms object from a cif file.
+
+    A cif does not store the orientation of the cell, so ASE rebuilds it in a generic
+    orientation. With align=True the structure is rotated into spglib's standard frame so
+    that pw.x can detect all symmetry operations (see align_to_standard_orientation).
+    """
     atoms = read(path)
+    if isinstance(atoms, list):
+        if not atoms:
+            raise ValueError(f"No structure found in CIF file: {path}")
+        atoms = atoms[0]
+    if align:
+        try:
+            atoms = align_to_standard_orientation(atoms)
+        except ValueError as err:
+            print(f"Warning: orientation not standardised for {path}: {err}")
     atoms.set_initial_magnetic_moments(
             [magmom if s == "Fe" else 0.0 for s in atoms.get_chemical_symbols()]
         )
@@ -125,7 +180,7 @@ def supercell_conventional_one_al(n: int, vol: float, magmom: float = 0.2) -> At
     )
     return atoms
 
-def gen_sym_ineq_supercells(n_cells: int, n_subs: int, vol_per_atom: float = None, magmom: float = 0.2, cell_type: str = "conventional") -> dict:
+def gen_sym_ineq_supercells(n_cells: int, n_subs: int, vol_per_atom: Optional[float] = None, magmom: float = 0.2, cell_type: str = "conventional") -> dict:
     """
     Generate a dictionary of all symmetry-inequivalent configurations of a n_cells x n_cells x n_cells supercell with n_subs substitutions.
 
@@ -165,8 +220,14 @@ def gen_sym_ineq_supercells(n_cells: int, n_subs: int, vol_per_atom: float = Non
 
     # Stage 1
     symprec = 1e-4
-    cell = (atoms.cell[:], atoms.get_scaled_positions(), atoms.numbers)
+    cell = (
+        np.asarray(atoms.cell, dtype=float).tolist(),
+        np.asarray(atoms.get_scaled_positions(), dtype=float).tolist(),
+        np.asarray(atoms.numbers, dtype=int).tolist(),
+    )
     sym = spglib.get_symmetry(cell, symprec=symprec)
+    if sym is None:
+        raise ValueError("spglib could not determine the symmetry of this supercell")
     rots, trans = sym["rotations"], sym["translations"]
     print("Number of symmetry operations:", len(rots))
 
@@ -232,8 +293,14 @@ def gen_sym_ineq_supercells(n_cells: int, n_subs: int, vol_per_atom: float = Non
         ineq_atoms.set_initial_magnetic_moments(
                 [magmom if s == "Fe" else 0.0 for s in ineq_atoms.get_chemical_symbols()]
             )
-        cell = (ineq_atoms.cell[:], ineq_atoms.get_scaled_positions(), ineq_atoms.numbers)
+        cell = (
+            np.asarray(ineq_atoms.cell, dtype=float).tolist(),
+            np.asarray(ineq_atoms.get_scaled_positions(), dtype=float).tolist(),
+            np.asarray(ineq_atoms.numbers, dtype=int).tolist(),
+        )
         sym = spglib.get_symmetry_dataset(cell, symprec=symprec)
+        if sym is None:
+            raise ValueError(f"spglib could not determine the symmetry for configuration {n}")
         struct_dict[n] = {
             "atoms": ineq_atoms,
             "spacegroup": sym.international.replace("/", "_"),
@@ -265,12 +332,13 @@ def write_results_ineq_supercells(struct_dict: dict, output_dir: str):
     width = len(str(len(ranked) - 1))
     renumbered = {}
     for rank, d in enumerate(ranked):
-        tag = f"{d['formula']}_{rank:0{width}d}_{d["spacegroup"]}_m{d['multiplicity']}"
+        tag = f"{d['formula']}_{rank:0{width}d}_{d['spacegroup']}_m{d['multiplicity']}"
         write_cif(d["atoms"], os.path.join(output_dir, f"{tag}.cif"))
         renumbered[rank] = {**d, "filename": tag}
 
-    save_nested_dict_csv(struct_dict, os.path.join(output_dir, "summary.csv"), index_label="Symmetry rank")
+    # Use the ranked dict so the summary matches the cif file names (was: struct_dict)
+    save_nested_dict_csv(renumbered, os.path.join(output_dir, "summary.csv"), index_label="Symmetry rank")
 
 if __name__ == "__main__":
-    structs = gen_sym_ineq_supercells(2, 2, (2 * V_PER_ATOM_AL + 6* V_PER_ATOM_FE) / 8, cell_type="primitive")
-    write_results_ineq_supercells(structs, output_dir=r"C:\Users\desde\Documents\GitHub\cmp-fe-al-phase-diagram\CIF Files\primitive_supercells\2x2x2")
+    structs = gen_sym_ineq_supercells(3, 6, (6 * V_PER_ATOM_AL + 21* V_PER_ATOM_FE) / 8, cell_type="primitive")
+    # write_results_ineq_supercells(structs, output_dir=r"C:\Users\desde\Documents\GitHub\cmp-fe-al-phase-diagram\CIF Files\primitive_supercells\3x3x3\6Al")
