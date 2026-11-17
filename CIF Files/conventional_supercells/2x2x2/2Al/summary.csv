@@ -1,0 +1,5 @@
+Symmetry rank,spacegroup,al_idx,number,multiplicity,formula,Al ratio,filename
+0,Im-3m,"[0, 14]",229,8,Fe14Al2,12.5,Fe14Al2_0_Im-3m_m8
+1,P4_mmm,"[0, 2]",123,24,Fe14Al2,12.5,Fe14Al2_1_P4_mmm_m24
+2,P4_mmm,"[0, 6]",123,24,Fe14Al2,12.5,Fe14Al2_2_P4_mmm_m24
+3,R-3m,"[0, 1]",166,64,Fe14Al2,12.5,Fe14Al2_3_R-3m_m64
