@@ -128,6 +128,15 @@ VC_RELAX_SETTINGS_LOW = QESettings(
     forc_conv_thr=5e-4
 )
 
+VC_RELAX_SETTINGS_LOWER = QESettings(
+    calc_type='vc-relax',
+    ecutwfc=120,
+    ecutrho=800,
+    kmesh=(4, 4, 4),
+    target_press=0,
+    forc_conv_thr=5e-4
+)
+
 
 # Class for EoS fits
 class EoSfit:
