@@ -22,7 +22,7 @@ structs = gen_sym_ineq_supercells(3, 5, cell_type="primitive")
 write_results_ineq_supercells(structs, output_dir=r"CIF Files/primitive_supercells/3x3x3/5Al")
 
 structs = gen_sym_ineq_supercells(3, 6, cell_type="primitive")
-write_results_ineq_supercells(structs, output_dir=r"CIF Files/primitive_supercells/3x3x3/6Al", max_cifs=100)
+write_results_ineq_supercells(structs, output_dir=r"CIF Files/primitive_supercells/3x3x3/6Al", max_cifs=330)
 
 ### CONVENTIONAL ###
 
