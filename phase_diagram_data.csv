@@ -2,6 +2,8 @@ Al fraction,Index,Chemical formula,Space group,Additional label,Formation energy
 
 0,None,bcc-Fe,None,None,0,True,None,True,False
 
+0.015625,0,Fe63Al,Im-3m,Wodan HPC,-0.0008994776004220134,True,19/11/2026,True,True
+
 1.851851851,0,Fe53Al,Pm-3m,Des HPC,-0.0010265895481872441,True,16/11/2026,True,False
 1.851851851,0,Fe53Al,Pm-3m,Wodan,-0.0010528379629871837,True,16/11/2026,False,False
 
@@ -60,3 +62,5 @@ Al fraction,Index,Chemical formula,Space group,Additional label,Formation energy
 25,02,Fe12Al4,P4/mmm_2,Des HPC + restart,-0.014068165133892307,True,14/11/2026,True,True
 25,05,Fe12Al4,P4_2/mmc,Des HPC + restart,-0.010427006672784955,True,14/11/2026,True,True
 25,06,Fe12Al4,P4/mmm_6,Des HPC + restart,-0.011908492805247306,True,14/11/2026,True,True
+25,0,Fe6Al2,P4_mmm_m12,Wodan HPC,-0.014123344433130569,True,19/11/2026,True,False
+25,1,Fe6Al2,R-3m_m16,Wodan HPC,-0.009456940683122639,True,19/11/2026,True,False
