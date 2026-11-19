@@ -320,7 +320,7 @@ def gen_sym_ineq_supercells(n_cells: int, n_subs: int, vol_per_atom: Optional[fl
 
     return struct_dict
 
-def write_results_ineq_supercells(struct_dict: dict, output_dir: str):
+def write_results_ineq_supercells(struct_dict: dict, output_dir: str, max_cifs=None):
     """Write results and cif files for inequivalent cif files."""
     os.makedirs(output_dir, exist_ok=True)
     
@@ -332,6 +332,9 @@ def write_results_ineq_supercells(struct_dict: dict, output_dir: str):
     width = len(str(len(ranked) - 1))
     renumbered = {}
     for rank, d in enumerate(ranked):
+        if max_cifs is not None:
+            if rank > max_cifs:
+                break
         tag = f"{d['formula']}_{rank:0{width}d}_{d['spacegroup']}_m{d['multiplicity']}"
         write_cif(d["atoms"], os.path.join(output_dir, f"{tag}.cif"))
         renumbered[rank] = {**d, "filename": tag}

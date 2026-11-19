@@ -8,6 +8,7 @@ from utils import *
 
 # BCC Fe
 structure = bcc_fe_primitive(vol=V_PER_ATOM_FE) # Primitive is cheaper to compute 
+write_cif(structure, "CIF Files/bccFe.cif")
 settings = QESettings( # Very high precision settings
     calc_type='vc-relax',
     ecutwfc=142,
@@ -17,7 +18,7 @@ settings = QESettings( # Very high precision settings
     forc_conv_thr=5e-4
 )
 
-results = run_calculation(structure, settings, calc_dir=PROJECT_ROOT / "Formation_Energies/bccFe", overwrite=True)
+# results = run_calculation(structure, settings, calc_dir=PROJECT_ROOT / "Formation_Energies/bccFe", overwrite=True)
 
 # FCC Al
 structure = fcc_al_primitive(vol=V_PER_ATOM_AL) # Primitive is cheaper to compute 
@@ -30,4 +31,4 @@ settings = QESettings( # Very high precision settings
     forc_conv_thr=5e-4
 )
 
-results = run_calculation(structure, settings, calc_dir=PROJECT_ROOT / "Formation_Energies/fccAl", overwrite=True)
+# results = run_calculation(structure, settings, calc_dir=PROJECT_ROOT / "Formation_Energies/fccAl", overwrite=True)
