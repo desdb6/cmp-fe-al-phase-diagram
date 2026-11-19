@@ -15,15 +15,16 @@ from ase.visualize import view
 from ase import Atoms
 from ase.build import bulk
 from ase.io import write, read
+from ase.units import eV, Ry
 import spglib
 
 from utils import *
 from crystal_builder import *
 
 CSV_PATH = Path("phase_diagram_data.csv")
-CIF_PATH = Path("CIF Files")
+CIF_DIR = Path("CIF Files")
 
-def find_cif(index: int, chemical_formula: str, root: Path = CIF_PATH) -> Path:
+def find_cif(index: int, chemical_formula: str, root: Path = CIF_DIR) -> Path:
     """Find the cif file for a given chemical formula and index. (Claude)
 
     Files are named like Fe23Al4_17_C2_m_m324.cif, where the index may be
@@ -46,7 +47,17 @@ def find_cif(index: int, chemical_formula: str, root: Path = CIF_PATH) -> Path:
     return matches[0]
 
 
-def preprocess(chemical_formula: str):
+def get_al_positions(structure: Atoms, scaled: bool = True) -> np.ndarray:
+    """Return the positions of all Al atoms in the structure."""
+    is_al = np.array(structure.get_chemical_symbols()) == "Al"
+    if not is_al.any():
+        raise ValueError("No Al atom found in structure")
+
+    positions = structure.get_scaled_positions() if scaled else structure.get_positions()
+    return positions[is_al]
+
+
+def preprocess():
     """
     Prepare data for cluster expansion.
 
@@ -54,4 +65,22 @@ def preprocess(chemical_formula: str):
     Output: Dataframe containing atoms object, converged energy, and al positions.
     """
     full_df = pd.read_csv(CSV_PATH)
-    df = full_df(full_df["Chemical formula"]==chemical_formula)
+    df = full_df[full_df["Include in cluster expansion"]].copy()
+    
+
+    df["Cif path"] = [
+        find_cif(int(idx), formula)
+        for idx, formula in zip(df["Index"], df["Chemical formula"])
+    ]
+    df["Structure"] = [
+        read_cif(structure_cif_path) for structure_cif_path in df["Cif path"]
+    ]
+    df["Al positions"] = [
+        get_al_positions(structure) for structure in df["Structure"]
+    ]
+
+    df = df.drop(columns=["Al fraction", "Index", "Space group", "Spin polarized", "Additional label", "Date", "Include in plot"])
+    df.to_csv("processed_data_cluster_expansion.csv")
+
+if __name__ == "__main__":
+    print(preprocess())
