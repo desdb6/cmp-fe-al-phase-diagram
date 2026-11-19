@@ -2,7 +2,7 @@ Al fraction,Index,Chemical formula,Space group,Additional label,Formation energy
 
 0,None,bcc-Fe,None,None,0,True,None,True,False
 
-0.015625,0,Fe63Al,Im-3m,Wodan HPC,-0.0008994776004220134,True,19/11/2026,True,True
+1.5625,0,Fe63Al,Im-3m,Wodan HPC,-0.0008994776004220134,True,19/11/2026,True,True
 
 1.851851851,0,Fe53Al,Pm-3m,Des HPC,-0.0010265895481872441,True,16/11/2026,True,False
 1.851851851,0,Fe53Al,Pm-3m,Wodan,-0.0010528379629871837,True,16/11/2026,False,False
