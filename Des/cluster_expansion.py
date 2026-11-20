@@ -45,7 +45,7 @@ CE_DIR.mkdir(parents=True, exist_ok=True)
 # (cell type, supercell size, list of Al counts)
 _PREDICTION_SETS = [
     ("conventional_supercells", "2x2x2", [2, 3, 4]),
-    ("conventional_supercells", "3x3x3", [2, 3, 4, 5, 6]),
+    ("conventional_supercells", "3x3x3", [2, 3, 4, 5, 6, 7]),
     ("primitive_supercells",    "2x2x2", [2]),
     ("primitive_supercells",    "3x3x3", [2, 3, 4, 5, 6]),
 ]
@@ -276,6 +276,46 @@ def fit_energies(cif_dir: str, window: float = 1.5e-3) -> pd.DataFrame:
     return results
 
 
+def repredict_all_energies(window: float = 1.5e-3, refit: bool = False) -> pd.DataFrame:
+    """Re-predict the formation energies of all cif files in every prediction directory.
+
+    Args:
+        window: Energy window (Ry) above the composition minimum for 'Worth relaxing'.
+        refit: If True, preprocess the data and refit the cluster expansion first,
+               so the predictions use freshly fitted parameters.
+
+    Returns:
+        A dataframe with the combined results of all directories.
+    """
+    if refit:
+        df = preprocess()
+        cluster_expansion(df)
+
+    all_results = []
+    failed = []
+    for results_path in PREDICTION_PATHS:
+        cif_dir = results_path.parent
+        if not cif_dir.exists():
+            print(f"Skipping {cif_dir}: directory does not exist")
+            failed.append((cif_dir, "missing directory"))
+            continue
+
+        print(f"\n=== {cif_dir.relative_to(CIF_DIR)} ===")
+        try:
+            all_results.append(fit_energies(str(cif_dir), window=window))
+        except Exception as e:
+            print(f"Failed for {cif_dir}: {e}")
+            failed.append((cif_dir, str(e)))
+
+    if failed:
+        print("\nThe following directories failed:")
+        for path, reason in failed:
+            print(f"  {path}: {reason}")
+
+    combined = pd.concat(all_results, ignore_index=True)
+    print(f"\nRepredicted {len(combined)} structures across {len(all_results)} directories")
+    return combined
+
 def list_all_energies():
     """List all predicted energies and fractions for plotting."""
     fractions = []
@@ -382,7 +422,7 @@ def plot_predicted_energies():
 def main():
     df = preprocess()
     cluster_expansion(df)
-    check_prediction(df)
+    repredict_all_energies()
     
 
 if __name__ == "__main__":

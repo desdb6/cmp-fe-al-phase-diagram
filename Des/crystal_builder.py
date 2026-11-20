@@ -20,6 +20,8 @@ Edits (16/11/2026):
 
 import os
 from typing import Optional
+from tqdm import tqdm
+from itertools import combinations
 
 import numpy as np
 
@@ -28,7 +30,7 @@ from ase import Atoms
 from ase.build import bulk
 from ase.io import write, read
 import spglib
-from itertools import combinations
+from math import comb
 
 try:
     from Des.utils import *   # when imported from the project root
@@ -183,7 +185,7 @@ def supercell_conventional_one_al(n: int, vol: float, magmom: float = 0.2) -> At
     )
     return atoms
 
-def gen_sym_ineq_supercells(n_cells: int, n_subs: int, vol_per_atom: Optional[float] = None, magmom: float = 0.2, cell_type: str = "conventional") -> dict:
+def gen_sym_ineq_supercells(n_cells: int, n_subs: int, vol_per_atom: Optional[float] = None, magmom: float = 0.2, cell_type: str = "conventional", max_cifs: Optional[int] = None) -> dict:
     """
     Generate a dictionary of all symmetry-inequivalent configurations of a n_cells x n_cells x n_cells supercell with n_subs substitutions.
 
@@ -250,7 +252,7 @@ def gen_sym_ineq_supercells(n_cells: int, n_subs: int, vol_per_atom: Optional[fl
         return permutation
 
     positions = wrap(atoms.get_scaled_positions())
-    perms = np.array([calculate_permutation(R, t, positions) for R, t in zip(rots, trans)])
+    perms = np.array([calculate_permutation(R, t, positions) for R, t in tqdm(zip(rots, trans), desc="Generating all structures...")])
 
     print(f"Generated symmetry-equivalent permutations:")
     print(perms[0:5])
@@ -270,13 +272,25 @@ def gen_sym_ineq_supercells(n_cells: int, n_subs: int, vol_per_atom: Optional[fl
             key = key * n_atoms + arr[..., i]      # first element = most significant digit
         return key
 
-    substitution_indices = np.array(list(combinations(range(n_atoms), n_subs)), dtype=np.int64) # Make a list of all possible substitutions
-    all_keys = encode_base_n_atoms(substitution_indices).tolist()   # Encode list as single integers, so visited check can be done
+    
+    total = comb(n_atoms, n_subs)
+    substitution_indices = np.fromiter(
+        (idx for combo in tqdm(combinations(range(n_atoms), n_subs), total=total,
+                            desc="Generating substitutions")
+        for idx in combo),
+        dtype=np.int64,
+        count=total * n_subs,
+    ).reshape(total, n_subs) # List all possible substitutions
+
+    chunk = 1_000_000
+    all_keys = []
+    for start in tqdm(range(0, len(substitution_indices), chunk), desc="Encoding keys"):
+        all_keys.extend(encode_base_n_atoms(substitution_indices[start:start + chunk]).tolist())   # Encode list as single integers, so visited check can be done
 
     visited = set()
     inequivalent = []
 
-    for sub_idx, sub_key in zip(substitution_indices, all_keys):
+    for sub_idx, sub_key in tqdm(zip(substitution_indices, all_keys), desc="Removing inequivalent structures..."):
         if sub_key in visited: # check if configuration is already in an earlier orbit
             continue                                       
 
@@ -289,13 +303,20 @@ def gen_sym_ineq_supercells(n_cells: int, n_subs: int, vol_per_atom: Optional[fl
     print(f"{len(substitution_indices)} subsets -> {len(inequivalent)} inequivalent configurations")
 
     # Stage 4
+    # Rank by multiplicity (descending); stable sort keeps original order for ties
+    ranked = sorted(enumerate(inequivalent), key=lambda x: x[1][1])
+    if max_cifs is not None:
+        ranked = ranked[:max_cifs]
+        print(f"Keeping the {len(ranked)} highest-multiplicity configurations "
+              f"(of {len(inequivalent)})")
+
     struct_dict = {}
-    for n, (al_pos, mult) in enumerate(inequivalent):
+    for n, (al_pos, mult) in tqdm(ranked, desc="Writing atoms objects..."):
         ineq_atoms = atoms.copy()
         ineq_atoms.symbols[al_pos] = "Al"
         ineq_atoms.set_initial_magnetic_moments(
-                [magmom if s == "Fe" else 0.0 for s in ineq_atoms.get_chemical_symbols()]
-            )
+            [magmom if s == "Fe" else 0.0 for s in ineq_atoms.get_chemical_symbols()]
+        )
         cell = (
             np.asarray(ineq_atoms.cell, dtype=float).tolist(),
             np.asarray(ineq_atoms.get_scaled_positions(), dtype=float).tolist(),
@@ -311,8 +332,8 @@ def gen_sym_ineq_supercells(n_cells: int, n_subs: int, vol_per_atom: Optional[fl
             "number": sym.number,
             "multiplicity": mult,
             "formula": formula,
-            "Al ratio": n_subs / n_atoms * 100
-            }
+            "Al ratio": n_subs / n_atoms * 100,
+        }
 
     # Print results
     print(f"{'#':>4}  {'space group':<12} {'no.':>4}  {'mult.':>6}  Al indices")
