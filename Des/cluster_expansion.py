@@ -12,19 +12,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.spatial import ConvexHull
 import pandas as pd
-import os
 from pathlib import Path
 from tqdm import tqdm
+import re
 import itertools
+from itertools import combinations
 
-from ase.visualize import view
 from ase import Atoms
-from ase.build import bulk
-from ase.io import write, read
-from ase.units import eV, Ry
 from ase.cell import Cell
-import spglib
-import icet
 from icet import ClusterSpace, StructureContainer, ClusterExpansion
 from trainstation import CrossValidationEstimator
 from icet.tools.structure_mapping import map_structure_to_reference
@@ -41,24 +36,23 @@ try:
 except ModuleNotFoundError:
     from crystal_builder import *
 
-CSV_PATH = Path("phase_diagram_data.csv")
-CIF_DIR = Path("CIF Files")
+ROOT = Path(__file__).resolve().parent.parent   # project root (this file lives in Des/)
+CSV_PATH = ROOT / "phase_diagram_data.csv"
+CIF_DIR = ROOT / "CIF Files"
+CE_DIR = ROOT / "Des" / "cluster_expansion"
+CE_DIR.mkdir(parents=True, exist_ok=True)
 
+# (cell type, supercell size, list of Al counts)
+_PREDICTION_SETS = [
+    ("conventional_supercells", "2x2x2", [2, 3, 4]),
+    ("conventional_supercells", "3x3x3", [2, 3, 4, 5, 6]),
+    ("primitive_supercells",    "2x2x2", [2]),
+    ("primitive_supercells",    "3x3x3", [2, 3, 4, 5, 6]),
+]
 PREDICTION_PATHS = [
-    r"CIF Files\conventional_supercells\2x2x2\2Al\cluster_expansion_results.csv",
-    r"CIF Files\conventional_supercells\2x2x2\3Al\cluster_expansion_results.csv",
-    r"CIF Files\conventional_supercells\2x2x2\4Al\cluster_expansion_results.csv",
-    r"CIF Files\conventional_supercells\3x3x3\2Al\cluster_expansion_results.csv",
-    r"CIF Files\conventional_supercells\3x3x3\3Al\cluster_expansion_results.csv",
-    r"CIF Files\conventional_supercells\3x3x3\4Al\cluster_expansion_results.csv",
-    r"CIF Files\conventional_supercells\3x3x3\5Al\cluster_expansion_results.csv",
-    r"CIF Files\conventional_supercells\3x3x3\6Al\cluster_expansion_results.csv",
-    r"CIF Files\primitive_supercells\2x2x2\2Al\cluster_expansion_results.csv",
-    r"CIF Files\primitive_supercells\3x3x3\2Al\cluster_expansion_results.csv",
-    r"CIF Files\primitive_supercells\3x3x3\3Al\cluster_expansion_results.csv",
-    r"CIF Files\primitive_supercells\3x3x3\4Al\cluster_expansion_results.csv",
-    r"CIF Files\primitive_supercells\3x3x3\5Al\cluster_expansion_results.csv",
-    r"CIF Files\primitive_supercells\3x3x3\6Al\cluster_expansion_results.csv"
+    CIF_DIR / cell / size / f"{n}Al" / "cluster_expansion_results.csv"
+    for cell, size, counts in _PREDICTION_SETS
+    for n in counts
 ]
 
 def _map(structure, ref, q, kwargs):
