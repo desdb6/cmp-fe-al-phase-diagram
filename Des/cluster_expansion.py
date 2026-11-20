@@ -185,7 +185,7 @@ def cluster_expansion(df: pd.DataFrame):
     """Perform a cluster expansion on preprocessed data."""
     primitive_structure = bcc_fe_primitive(V_PER_ATOM_FE)
     cs = ClusterSpace(structure=primitive_structure,
-                  cutoffs=[10.0, 6.0, 5.0],
+                  cutoffs=[13.5, 8.0, 6.0],
                   chemical_symbols=['Al', 'Fe'])
     sc = StructureContainer(cluster_space=cs)
     for structure, energy, tag in zip(df["Structure"], df["Formation energy (Ry)"], df["Cif path"]):
@@ -219,15 +219,21 @@ def check_prediction(df):
     for structure, energy in tqdm(zip(df["Structure"], df["Formation energy (Ry)"]), desc="Predicting energies..."):
         ideal, _ = map_structure_to_reference(structure, primitive_structure)
         energies.append(energy)
-        predicted_energy.append(ce.predict(ideal))
-    indices = range(len(energies))
-    fig, ax = plt.subplots(figsize=(5, 3))
-    ax.set_xlabel(r'Index')
+        predicted_energy.append(float(ce.predict(ideal)))
+
+    labels = [Path(p).stem for p in df["Cif path"]]   # filename without ".cif"
+    indices = np.arange(len(energies))
+
+    # Widen the figure with the number of structures so labels don't overlap
+    fig, ax = plt.subplots(figsize=(max(5, 0.25 * len(indices)), 4))
     ax.set_ylabel(r'Formation energy (Ry)')
-    ax.scatter(indices, energies,
-            marker='o', label='reference')
-    ax.scatter(indices, predicted_energy,
-            marker='x', label='CE prediction')
+    ax.scatter(indices, energies, marker='o', label='reference')
+    ax.scatter(indices, predicted_energy, marker='x', label='CE prediction')
+
+    ax.set_xticks(indices)
+    ax.set_xticklabels(labels, rotation=90, fontsize=5)
+    ax.set_xlim(-1, len(indices))
+
     ax.grid(alpha=0.5)
     ax.legend()
     plt.savefig(r'Des\cluster_expansion\mixing_energy_comparison.png', bbox_inches='tight', dpi=360)
@@ -380,5 +386,5 @@ def main():
     
 
 if __name__ == "__main__":
-    # main()
+    main()
     plot_predicted_energies()

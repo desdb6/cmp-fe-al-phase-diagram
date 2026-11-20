@@ -6,7 +6,7 @@ from matplotlib.offsetbox import TextArea, HPacker, VPacker, AnnotationBbox
 from matplotlib.legend_handler import HandlerTuple
 from scipy.spatial import ConvexHull
 
-from Des.cluster_expansion import list_all_energies
+from Des.cluster_expansion import list_all_energies, find_cif
 
 DATA_PATH = "phase_diagram_data.csv"
 
@@ -130,33 +130,51 @@ def phase_diagram():
     plt.show()
 
 def phase_diagram_ce():
-    df = pd.read_csv(DATA_PATH)
-    df = df[df["Include in plot"] == True]
+    full_df = pd.read_csv(DATA_PATH)
+    df = full_df[full_df["Include in plot"] == True]
 
-    dft_x = df["Al fraction"].to_numpy()          # check units: must be in % like the CE data
+    dft_x = df["Al fraction"].to_numpy()
     dft_y = df["Formation energy (Ry)"].to_numpy()
-    # Use the file column if your DFT csv has one, otherwise fall back to the index
-    dft_tags = (df["File"] if "File" in df.columns else df.index.to_series()).astype(str).to_numpy()
+    dft_tags = df["Index"].astype(str).to_numpy()
 
     fractions, predicted_energies, tags = list_all_energies()
+    fractions = np.asarray(fractions)
+    predicted_energies = np.asarray(predicted_energies)
+    tags = np.asarray(tags)
+
+    # Filenames of every structure that has a DFT calculation
+    calculated_files = set()
+    for idx, formula in zip(full_df["Index"], full_df["Chemical formula"]):
+        try:
+            calculated_files.add(find_cif(int(idx), formula).name)
+        except (FileNotFoundError, ValueError):
+            pass  # no cif found, or ambiguous match
+    done = np.isin(tags, list(calculated_files))
+    print(f"{done.sum()} of {len(tags)} predictions already have a DFT calculation")
 
     fig, ax = plt.subplots(figsize=(16, 10))
 
-    # DFT data (two overlaid markers for the red ring / yellow centre look)
+    # DFT data
     outer = ax.scatter(dft_x, dft_y, s=60, color=RED, zorder=3, clip_on=False)
     inner = ax.scatter(dft_x, dft_y, s=20, color=YELLOW, zorder=4, clip_on=False)
 
-    # Cluster expansion predictions
-    predicted_data = ax.scatter(
-        fractions, predicted_energies,
+    # Predictions not yet calculated
+    pending = ax.scatter(
+        fractions[~done], predicted_energies[~done],
         alpha=0.5, s=20, color="#0084FF", zorder=2, clip_on=False,
     )
+    # Predictions that have already been calculated with DFT
+    calculated = ax.scatter(
+        fractions[done], predicted_energies[done],
+        s=45, facecolors="none", edgecolors="#00A650",
+        lw=1.5, zorder=3, clip_on=False,
+    )
 
-    # Convex hull over DFT + predictions (pure elements have E_form = 0)
+        # Convex hull over DFT data only (pure elements have E_form = 0)
     ref_x = [0.0, 100.0]
     ref_y = [0.0, 0.0]
-    hull_x = np.concatenate([dft_x, fractions, ref_x])
-    hull_y = np.concatenate([dft_y, predicted_energies, ref_y])
+    hull_x = np.concatenate([dft_x, ref_x])
+    hull_y = np.concatenate([dft_y, ref_y])
 
     points = np.column_stack([hull_x / 100, hull_y])
     ch = ConvexHull(points)
@@ -170,10 +188,20 @@ def phase_diagram_ce():
     hull_line, = ax.plot(hull[:, 0], hull[:, 1],
                          color="black", lw=1.2, ls="--", zorder=1)
 
-    # Hover tooltip covering both datasets
+    # Predictions that fall below the DFT hull are candidates worth calculating
+    hull_at_pred = np.interp(fractions, hull[:, 0], hull[:, 1])
+    below = (predicted_energies < hull_at_pred - 1e-6) & ~done
+    print(f"{below.sum()} uncalculated predictions lie below the DFT hull:")
+    for t, x, y in zip(tags[below], fractions[below], predicted_energies[below]):
+        print(f"  {t}  {x:.1f}% Al  {y:.5f} Ry")
+
+    # Hover tooltip covering all datasets
     sources = [
         (inner, dft_x, dft_y, dft_tags, "DFT calculation"),
-        (predicted_data, fractions, predicted_energies, tags, "CE prediction"),
+        (calculated, fractions[done], predicted_energies[done], tags[done],
+         "CE prediction (already calculated)"),
+        (pending, fractions[~done], predicted_energies[~done], tags[~done],
+         "CE prediction (not calculated)"),
     ]
     annot = ax.annotate(
         "", xy=(0, 0), xytext=(15, -45), textcoords="offset points",
@@ -212,15 +240,15 @@ def phase_diagram_ce():
     ax.tick_params(top=True, labeltop=True, bottom=False, labelbottom=False)
     ax.tick_params(left=True, labelleft=True, right=False, labelright=False)
 
-    # Labels
     ax.set_xlabel("Calculated and predicted energy as a function of % Al", fontsize=16)
     ax.xaxis.set_label_position("top")
     ax.set_ylabel(r"$E_{\mathrm{form}}$ (Ry/atom)", fontsize=16)
     ax.grid(alpha=0.6)
 
     ax.legend(
-        [(outer, inner), predicted_data, hull_line],
-        ["DFT data", "Cluster expansion predictions", "Convex hull"],
+        [(outer, inner), pending, calculated, hull_line],
+        ["DFT data", "CE prediction (not yet calculated)",
+         "CE prediction (already calculated)", "Convex hull (DFT)"],
         handler_map={tuple: HandlerTuple(ndivide=1)},
         loc="lower right",
         fontsize=12,
@@ -230,7 +258,6 @@ def phase_diagram_ce():
     fig.savefig("Phase Diagram Cluster Expansion.pdf", bbox_inches="tight")
 
     plt.show()
-
 
 
 if __name__ == "__main__":
