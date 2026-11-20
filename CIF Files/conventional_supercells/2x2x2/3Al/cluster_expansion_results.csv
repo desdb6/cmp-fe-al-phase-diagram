@@ -1,0 +1,7 @@
+Cif path,File,Chemical formula,Atoms,Al fraction,Predicted formation energy (Ry),Energy above composition minimum (Ry),Worth relaxing
+CIF Files\conventional_supercells\2x2x2\3Al\Fe13Al3_0_Pm-3m_m16.cif,Fe13Al3_0_Pm-3m_m16.cif,Al3Fe13,16,0.1875,-0.010345062458685893,0.0,True
+CIF Files\conventional_supercells\2x2x2\3Al\Fe13Al3_5_Cmm2_m192.cif,Fe13Al3_5_Cmm2_m192.cif,Al3Fe13,16,0.1875,-0.0091823502526164,0.0011627122060694928,True
+CIF Files\conventional_supercells\2x2x2\3Al\Fe13Al3_2_P4_mmm_m48.cif,Fe13Al3_2_P4_mmm_m48.cif,Al3Fe13,16,0.1875,-0.009006747761856011,0.0013383146968298822,True
+CIF Files\conventional_supercells\2x2x2\3Al\Fe13Al3_3_R-3m_m64.cif,Fe13Al3_3_R-3m_m64.cif,Al3Fe13,16,0.1875,-0.008384427880548136,0.0019606345781377574,False
+CIF Files\conventional_supercells\2x2x2\3Al\Fe13Al3_4_Amm2_m192.cif,Fe13Al3_4_Amm2_m192.cif,Al3Fe13,16,0.1875,-0.008310377715628158,0.0020346847430577353,False
+CIF Files\conventional_supercells\2x2x2\3Al\Fe13Al3_1_P4_mmm_m48.cif,Fe13Al3_1_P4_mmm_m48.cif,Al3Fe13,16,0.1875,-0.008102145685023758,0.0022429167736621354,False

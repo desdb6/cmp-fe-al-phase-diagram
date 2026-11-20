@@ -1,0 +1,4 @@
+Cif path,File,Chemical formula,Atoms,Al fraction,Predicted formation energy (Ry),Energy above composition minimum (Ry),Worth relaxing
+CIF Files\primitive_supercells\3x3x3\2Al\Fe25Al2_2_Fmmm_m162.cif,Fe25Al2_2_Fmmm_m162.cif,Al2Fe25,27,0.07407407407407407,-0.0045274455931524574,0.0,True
+CIF Files\primitive_supercells\3x3x3\2Al\Fe25Al2_1_R-3m_m108.cif,Fe25Al2_1_R-3m_m108.cif,Al2Fe25,27,0.07407407407407407,-0.004024625997759903,0.0005028195953925545,True
+CIF Files\primitive_supercells\3x3x3\2Al\Fe25Al2_0_I4_mmm_m81.cif,Fe25Al2_0_I4_mmm_m81.cif,Al2Fe25,27,0.07407407407407407,-0.004000506673123681,0.0005269389200287765,True

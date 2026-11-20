@@ -68,7 +68,11 @@ class QESettings:
 
     def to_input_data(self) -> dict:
         data = {
-            "control": {"calculation": self.calc_type},
+            "control": {
+                "calculation": self.calc_type,
+                "verbosity": "low",
+                "disk_io": "nowf",
+                },
             "system": {
                 "ecutwfc": self.ecutwfc,
                 "ecutrho": self.ecutrho,
@@ -110,6 +114,13 @@ SCF_SETTINGS_LOW = QESettings(
     kmesh=(6, 6, 6)
 )
 
+SCF_SETTINGS_LOWER = QESettings(
+    calc_type='scf',
+    ecutwfc=120,
+    ecutrho=800,
+    kmesh=(4, 4, 4)
+)
+
 VC_RELAX_SETTINGS_HIGH = QESettings(
     calc_type='vc-relax',
     ecutwfc=134,
@@ -136,6 +147,7 @@ VC_RELAX_SETTINGS_LOWER = QESettings(
     target_press=0,
     forc_conv_thr=5e-4
 )
+
 
 
 # Class for EoS fits
