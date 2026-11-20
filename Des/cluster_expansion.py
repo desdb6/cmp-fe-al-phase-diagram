@@ -10,10 +10,12 @@ import time, multiprocessing as mp
 
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.spatial import ConvexHull
 import pandas as pd
 import os
 from pathlib import Path
 from tqdm import tqdm
+import itertools
 
 from ase.visualize import view
 from ase import Atoms
@@ -29,11 +31,35 @@ from icet.tools.structure_mapping import map_structure_to_reference
 from pymatgen.analysis.structure_matcher import StructureMatcher
 from pymatgen.io.ase import AseAtomsAdaptor
 
-from utils import *
-from crystal_builder import *
+try:
+    from Des.utils import *
+except ModuleNotFoundError:
+    from utils import *
+
+try:
+    from Des.crystal_builder import *
+except ModuleNotFoundError:
+    from crystal_builder import *
 
 CSV_PATH = Path("phase_diagram_data.csv")
 CIF_DIR = Path("CIF Files")
+
+PREDICTION_PATHS = [
+    r"CIF Files\conventional_supercells\2x2x2\2Al\cluster_expansion_results.csv",
+    r"CIF Files\conventional_supercells\2x2x2\3Al\cluster_expansion_results.csv",
+    r"CIF Files\conventional_supercells\2x2x2\4Al\cluster_expansion_results.csv",
+    r"CIF Files\conventional_supercells\3x3x3\2Al\cluster_expansion_results.csv",
+    r"CIF Files\conventional_supercells\3x3x3\3Al\cluster_expansion_results.csv",
+    r"CIF Files\conventional_supercells\3x3x3\4Al\cluster_expansion_results.csv",
+    r"CIF Files\conventional_supercells\3x3x3\5Al\cluster_expansion_results.csv",
+    r"CIF Files\conventional_supercells\3x3x3\6Al\cluster_expansion_results.csv",
+    r"CIF Files\primitive_supercells\2x2x2\2Al\cluster_expansion_results.csv",
+    r"CIF Files\primitive_supercells\3x3x3\2Al\cluster_expansion_results.csv",
+    r"CIF Files\primitive_supercells\3x3x3\3Al\cluster_expansion_results.csv",
+    r"CIF Files\primitive_supercells\3x3x3\4Al\cluster_expansion_results.csv",
+    r"CIF Files\primitive_supercells\3x3x3\5Al\cluster_expansion_results.csv",
+    r"CIF Files\primitive_supercells\3x3x3\6Al\cluster_expansion_results.csv"
+]
 
 def _map(structure, ref, q, kwargs):
     t = time.time()
@@ -250,6 +276,109 @@ def fit_energies(cif_dir: str, window: float = 1.5e-3) -> pd.DataFrame:
     return results
 
 
+def list_all_energies():
+    """List all predicted energies and fractions for plotting."""
+    fractions = []
+    predicted_energies = []
+    tags = []
+    for ce_result_path in PREDICTION_PATHS:
+        df = pd.read_csv(ce_result_path)
+        fractions.append(df["Al fraction"] * 100)
+        predicted_energies.append(df["Predicted formation energy (Ry)"])
+        tags.append(df["File"])
+    fractions = list(itertools.chain.from_iterable(fractions))
+    predicted_energies = list(itertools.chain.from_iterable(predicted_energies))
+    tags = list(itertools.chain.from_iterable(tags))
+    return fractions, predicted_energies, tags
+
+
+
+def plot_predicted_energies():
+    """Make a plot of all predicted energies with convex hull."""
+    fractions, predicted_energies, tags = list_all_energies()
+    fig, ax = plt.subplots(figsize=(16, 10))
+
+    # Spin polarized data
+    data = ax.scatter(
+        x=fractions,
+        y=predicted_energies,
+        s=20, color="#0084FF", zorder=2, clip_on=False
+    )
+
+        # Hover tooltip
+    annot = ax.annotate(
+        "", xy=(0, 0), xytext=(15, -45), textcoords="offset points",
+        bbox=dict(boxstyle="round", fc="white", ec="black", alpha=0.9),
+        arrowprops=dict(arrowstyle="->"), zorder=10,
+    )
+    annot.set_visible(False)
+
+    def on_hover(event):
+        visible = annot.get_visible()
+        if event.inaxes == ax:
+            hit, info = data.contains(event)
+            if hit:
+                i = info["ind"][0]
+                annot.xy = (fractions[i], predicted_energies[i])
+                annot.set_text(
+                    f"{tags[i]}\n"
+                    f"{fractions[i]:.1f}% Al\n"
+                    f"{predicted_energies[i]:.5f} Ry"
+                )
+                annot.set_visible(True)
+                fig.canvas.draw_idle()
+                return
+        if visible:
+            annot.set_visible(False)
+            fig.canvas.draw_idle()
+
+    fig.canvas.mpl_connect("motion_notify_event", on_hover)
+
+    # Convex hull (pure elements have E_form = 0 by definition)
+    ref_x = [0.0, 100.0]
+    ref_y = [0.0, 0.0]
+    hull_x = np.concatenate([fractions, ref_x])
+    hull_y = np.concatenate([predicted_energies, ref_y])
+
+    # x is in %, y is in Ry: rescale x to a fraction so Qhull's tolerances behave
+    points = np.column_stack([hull_x / 100, hull_y])
+    ch = ConvexHull(points)
+
+    # Keep only the lower facets: outward normal has a negative y-component
+    lower_simplices = ch.simplices[ch.equations[:, 1] < -1e-12]
+    hull_idx = np.unique(lower_simplices.ravel())
+    hull = np.column_stack([hull_x[hull_idx], hull_y[hull_idx]])
+    hull = hull[np.argsort(hull[:, 0])]
+
+    ax.scatter(hull[:, 0], hull[:, 1], s=140, facecolors="none",
+            edgecolors="black", lw=1.2, zorder=4, clip_on=False)
+
+    hull_line, = ax.plot(
+        hull[:, 0], hull[:, 1],
+        color="black", lw=1.2, ls="--", zorder=1,
+    )
+
+    # Set limits
+    ax.set_xlim(0, 25)
+    ax.margins(y=0.5)
+    ax.set_ylim(top=0)
+
+    # Move x axis ticks to top
+    ax.tick_params(top=True, labeltop=True, bottom=False, labelbottom=False)
+    ax.tick_params(left=True, labelleft=True, right=False, labelright=False)
+
+    # Labels
+    ax.set_xlabel("Predicted energies % Al", fontsize=16)
+    ax.xaxis.set_label_position("top")
+    ax.set_ylabel(r"$E_{\mathrm{form}}$ (Ry/atom)", fontsize=16)
+    ax.grid(alpha=0.6)
+
+    plt.savefig("Predicted_energies.png", dpi=360)
+    fig.savefig("Predicted_energies.pdf", bbox_inches="tight")   # vector, good for the report
+
+    plt.show()
+
+
 def main():
     df = preprocess()
     cluster_expansion(df)
@@ -258,17 +387,4 @@ def main():
 
 if __name__ == "__main__":
     # main()
-    fit_energies(r"CIF Files\conventional_supercells\2x2x2\2Al")
-    fit_energies(r"CIF Files\conventional_supercells\2x2x2\3Al")
-    fit_energies(r"CIF Files\conventional_supercells\2x2x2\4Al")
-    fit_energies(r"CIF Files\conventional_supercells\3x3x3\2Al")
-    fit_energies(r"CIF Files\conventional_supercells\3x3x3\3Al")
-    fit_energies(r"CIF Files\conventional_supercells\3x3x3\4Al")
-    fit_energies(r"CIF Files\conventional_supercells\3x3x3\5Al")
-    fit_energies(r"CIF Files\conventional_supercells\3x3x3\6Al")
-    fit_energies(r"CIF Files\primitive_supercells\2x2x2\2Al")
-    fit_energies(r"CIF Files\primitive_supercells\3x3x3\2Al")
-    fit_energies(r"CIF Files\primitive_supercells\3x3x3\3Al")
-    fit_energies(r"CIF Files\primitive_supercells\3x3x3\4Al")
-    fit_energies(r"CIF Files\primitive_supercells\3x3x3\5Al")
-    fit_energies(r"CIF Files\primitive_supercells\3x3x3\6Al")
+    plot_predicted_energies()

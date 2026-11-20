@@ -30,7 +30,10 @@ from ase.io import write, read
 import spglib
 from itertools import combinations
 
-from utils import *
+try:
+    from Des.utils import *   # when imported from the project root
+except ModuleNotFoundError:
+    from utils import *       # when run directly from inside Des/
 
 def write_cif(atoms: Atoms, path: str) -> None:
     """Generate a cif file from an Atoms object."""
