@@ -386,5 +386,5 @@ def main():
     
 
 if __name__ == "__main__":
-    # main()
+    main()
     plot_predicted_energies()
