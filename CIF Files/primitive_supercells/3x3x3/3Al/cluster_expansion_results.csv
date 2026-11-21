@@ -1,11 +1,11 @@
 Cif path,File,Chemical formula,Atoms,Al fraction,Predicted formation energy (Ry),Energy above composition minimum (Ry),Worth relaxing
-C:\Users\desde\Documents\GitHub\cmp-fe-al-phase-diagram\CIF Files\primitive_supercells\3x3x3\3Al\Fe24Al3_3_R3m_m216.cif,Fe24Al3_3_R3m_m216.cif,Al3Fe24,27,0.1111111111111111,-0.0069715694800218855,0.0,True
-C:\Users\desde\Documents\GitHub\cmp-fe-al-phase-diagram\CIF Files\primitive_supercells\3x3x3\3Al\Fe24Al3_2_Fmmm_m54.cif,Fe24Al3_2_Fmmm_m54.cif,Al3Fe24,27,0.1111111111111111,-0.006826745790112338,0.00014482368990954755,True
-C:\Users\desde\Documents\GitHub\cmp-fe-al-phase-diagram\CIF Files\primitive_supercells\3x3x3\3Al\Fe24Al3_9_C2_m648.cif,Fe24Al3_9_C2_m648.cif,Al3Fe24,27,0.1111111111111111,-0.006512077678538721,0.0004594918014831648,True
-C:\Users\desde\Documents\GitHub\cmp-fe-al-phase-diagram\CIF Files\primitive_supercells\3x3x3\3Al\Fe24Al3_4_Imm2_m324.cif,Fe24Al3_4_Imm2_m324.cif,Al3Fe24,27,0.1111111111111111,-0.0064269362439394045,0.0005446332360824809,True
-C:\Users\desde\Documents\GitHub\cmp-fe-al-phase-diagram\CIF Files\primitive_supercells\3x3x3\3Al\Fe24Al3_7_Fmm2_m324.cif,Fe24Al3_7_Fmm2_m324.cif,Al3Fe24,27,0.1111111111111111,-0.0059253684517891056,0.00104620102823278,True
-C:\Users\desde\Documents\GitHub\cmp-fe-al-phase-diagram\CIF Files\primitive_supercells\3x3x3\3Al\Fe24Al3_5_Fmm2_m324.cif,Fe24Al3_5_Fmm2_m324.cif,Al3Fe24,27,0.1111111111111111,-0.005893826303567253,0.001077743176454632,True
-C:\Users\desde\Documents\GitHub\cmp-fe-al-phase-diagram\CIF Files\primitive_supercells\3x3x3\3Al\Fe24Al3_8_Cm_m648.cif,Fe24Al3_8_Cm_m648.cif,Al3Fe24,27,0.1111111111111111,-0.00588940525719592,0.0010821642228259652,True
-C:\Users\desde\Documents\GitHub\cmp-fe-al-phase-diagram\CIF Files\primitive_supercells\3x3x3\3Al\Fe24Al3_0_I4_mmm_m27.cif,Fe24Al3_0_I4_mmm_m27.cif,Al3Fe24,27,0.1111111111111111,-0.005429863062915614,0.0015417064171062717,False
-C:\Users\desde\Documents\GitHub\cmp-fe-al-phase-diagram\CIF Files\primitive_supercells\3x3x3\3Al\Fe24Al3_6_Fmm2_m324.cif,Fe24Al3_6_Fmm2_m324.cif,Al3Fe24,27,0.1111111111111111,-0.005425786426986484,0.0015457830530354018,False
-C:\Users\desde\Documents\GitHub\cmp-fe-al-phase-diagram\CIF Files\primitive_supercells\3x3x3\3Al\Fe24Al3_1_P-31m_m36.cif,Fe24Al3_1_P-31m_m36.cif,Al3Fe24,27,0.1111111111111111,-0.00493493413011509,0.0020366353499067956,False
+/home/des/cmp-fe-al-phase-diagram/CIF Files/primitive_supercells/3x3x3/3Al/Fe24Al3_3_R3m_m216.cif,Fe24Al3_3_R3m_m216.cif,Al3Fe24,27,0.1111111111111111,-0.006912254645028683,0.0,True
+/home/des/cmp-fe-al-phase-diagram/CIF Files/primitive_supercells/3x3x3/3Al/Fe24Al3_2_Fmmm_m54.cif,Fe24Al3_2_Fmmm_m54.cif,Al3Fe24,27,0.1111111111111111,-0.006770997191447952,0.0001412574535807308,True
+/home/des/cmp-fe-al-phase-diagram/CIF Files/primitive_supercells/3x3x3/3Al/Fe24Al3_9_C2_m648.cif,Fe24Al3_9_C2_m648.cif,Al3Fe24,27,0.1111111111111111,-0.006479855126287492,0.0004323995187411906,True
+/home/des/cmp-fe-al-phase-diagram/CIF Files/primitive_supercells/3x3x3/3Al/Fe24Al3_4_Imm2_m324.cif,Fe24Al3_4_Imm2_m324.cif,Al3Fe24,27,0.1111111111111111,-0.006378924368533641,0.0005333302764950415,True
+/home/des/cmp-fe-al-phase-diagram/CIF Files/primitive_supercells/3x3x3/3Al/Fe24Al3_7_Fmm2_m324.cif,Fe24Al3_7_Fmm2_m324.cif,Al3Fe24,27,0.1111111111111111,-0.005895555520964212,0.0010166991240644708,True
+/home/des/cmp-fe-al-phase-diagram/CIF Files/primitive_supercells/3x3x3/3Al/Fe24Al3_5_Fmm2_m324.cif,Fe24Al3_5_Fmm2_m324.cif,Al3Fe24,27,0.1111111111111111,-0.0058753202969061905,0.0010369343481224924,True
+/home/des/cmp-fe-al-phase-diagram/CIF Files/primitive_supercells/3x3x3/3Al/Fe24Al3_8_Cm_m648.cif,Fe24Al3_8_Cm_m648.cif,Al3Fe24,27,0.1111111111111111,-0.00585854900725668,0.001053705637772003,True
+/home/des/cmp-fe-al-phase-diagram/CIF Files/primitive_supercells/3x3x3/3Al/Fe24Al3_6_Fmm2_m324.cif,Fe24Al3_6_Fmm2_m324.cif,Al3Fe24,27,0.1111111111111111,-0.005426080785903635,0.0014861738591250475,True
+/home/des/cmp-fe-al-phase-diagram/CIF Files/primitive_supercells/3x3x3/3Al/Fe24Al3_0_I4_mmm_m27.cif,Fe24Al3_0_I4_mmm_m27.cif,Al3Fe24,27,0.1111111111111111,-0.005336951942480778,0.001575302702547905,False
+/home/des/cmp-fe-al-phase-diagram/CIF Files/primitive_supercells/3x3x3/3Al/Fe24Al3_1_P-31m_m36.cif,Fe24Al3_1_P-31m_m36.cif,Al3Fe24,27,0.1111111111111111,-0.00500860211321626,0.0019036525318124227,False

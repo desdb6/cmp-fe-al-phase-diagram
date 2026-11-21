@@ -177,7 +177,6 @@ def preprocess():
     ]
 
     df = df.drop(columns=["Al fraction", "Index", "Space group", "Spin polarized", "Additional label", "Date", "Include in plot"])
-    df.to_csv(r"Des\cluster_expansion\processed_data_cluster_expansion.csv")
     return df
 
 
@@ -206,12 +205,12 @@ def cluster_expansion(df: pd.DataFrame):
     ce = ClusterExpansion(
         cluster_space=cs, parameters=opt.parameters, metadata=opt.summary)
     print(ce)
-    ce.write(r'Des\cluster_expansion\fitted_parameters.ce')
+    ce.write(r'Des/cluster_expansion/fitted_parameters.ce')
 
 
 def check_prediction(df):
     """Plot predicted energies vs actual energies"""
-    ce = ClusterExpansion.read(r'Des\cluster_expansion\fitted_parameters.ce')
+    ce = ClusterExpansion.read(r'Des/cluster_expansion/fitted_parameters.ce')
     primitive_structure = bcc_fe_primitive(V_PER_ATOM_FE)
 
     predicted_energy = []
@@ -236,12 +235,12 @@ def check_prediction(df):
 
     ax.grid(alpha=0.5)
     ax.legend()
-    plt.savefig(r'Des\cluster_expansion\mixing_energy_comparison.png', bbox_inches='tight', dpi=360)
+    plt.savefig(r'Des/cluster_expansion/mixing_energy_comparison.png', bbox_inches='tight', dpi=360)
 
 
 def fit_energies(cif_dir: str, window: float = 1.5e-3) -> pd.DataFrame:
     """Predict the formation of every cif file in a directory."""
-    ce = ClusterExpansion.read(r'Des\cluster_expansion\fitted_parameters.ce')
+    ce = ClusterExpansion.read(r'Des/cluster_expansion/fitted_parameters.ce')
     ref = bcc_fe_primitive(V_PER_ATOM_FE)
 
     cif_paths = sorted(Path(cif_dir).rglob("*.cif"))
