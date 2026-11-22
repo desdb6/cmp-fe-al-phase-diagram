@@ -33,6 +33,7 @@ Al fraction,Index,Chemical formula,Space group,Additional label,Formation energy
 11.111,5,Fe24Al3,Fmm2,Ronan HPC,-0.00588756842181384,True,17/11/2026,True,True
 11.111,4,Fe24Al3,Imm2,Ronan HPC,-0.006397894307223463,True,17/11/2026,True,True
 11.111,9,Fe24Al3,C2,Ronan HPC,-0.006485023559603347,True,17/11/2026,True,True
+
 11.111,4,Fe48Al6,P-31c_m_m72,Wodan HPC,-0.0067805137213225765,True,21/11/2026,True,True
 11.111,42,Fe48Al6,P-42_1m_m324,Wodan HPC,-0.006700050949937712,True,21/11/2026,True,True
 
