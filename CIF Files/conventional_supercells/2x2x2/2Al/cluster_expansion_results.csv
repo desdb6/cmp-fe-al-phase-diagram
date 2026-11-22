@@ -1,5 +1,5 @@
 Cif path,File,Chemical formula,Atoms,Al fraction,Predicted formation energy (Ry),Energy above composition minimum (Ry),Worth relaxing
-/home/des/cmp-fe-al-phase-diagram/CIF Files/conventional_supercells/2x2x2/2Al/Fe14Al2_2_P4_mmm_m24.cif,Fe14Al2_2_P4_mmm_m24.cif,Al2Fe14,16,0.125,-0.006672848659128418,0.0,True
-/home/des/cmp-fe-al-phase-diagram/CIF Files/conventional_supercells/2x2x2/2Al/Fe14Al2_3_R-3m_m64.cif,Fe14Al2_3_R-3m_m64.cif,Al2Fe14,16,0.125,-0.006138169171800924,0.000534679487327494,True
-/home/des/cmp-fe-al-phase-diagram/CIF Files/conventional_supercells/2x2x2/2Al/Fe14Al2_0_Im-3m_m8.cif,Fe14Al2_0_Im-3m_m8.cif,Al2Fe14,16,0.125,-0.006064247139065431,0.0006086015200629869,True
-/home/des/cmp-fe-al-phase-diagram/CIF Files/conventional_supercells/2x2x2/2Al/Fe14Al2_1_P4_mmm_m24.cif,Fe14Al2_1_P4_mmm_m24.cif,Al2Fe14,16,0.125,-0.005386986524350178,0.0012858621347782402,True
+C:\Users\desde\Documents\GitHub\cmp-fe-al-phase-diagram\CIF Files\conventional_supercells\2x2x2\2Al\Fe14Al2_2_P4_mmm_m24.cif,Fe14Al2_2_P4_mmm_m24.cif,Al2Fe14,16,0.125,-0.006751558222216939,0.0,True
+C:\Users\desde\Documents\GitHub\cmp-fe-al-phase-diagram\CIF Files\conventional_supercells\2x2x2\2Al\Fe14Al2_3_R-3m_m64.cif,Fe14Al2_3_R-3m_m64.cif,Al2Fe14,16,0.125,-0.006238555816969255,0.0005130024052476838,True
+C:\Users\desde\Documents\GitHub\cmp-fe-al-phase-diagram\CIF Files\conventional_supercells\2x2x2\2Al\Fe14Al2_0_Im-3m_m8.cif,Fe14Al2_0_Im-3m_m8.cif,Al2Fe14,16,0.125,-0.0061524825978638035,0.0005990756243531353,True
+C:\Users\desde\Documents\GitHub\cmp-fe-al-phase-diagram\CIF Files\conventional_supercells\2x2x2\2Al\Fe14Al2_1_P4_mmm_m24.cif,Fe14Al2_1_P4_mmm_m24.cif,Al2Fe14,16,0.125,-0.005470026381659039,0.0012815318405579,False

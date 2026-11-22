@@ -238,7 +238,7 @@ def check_prediction(df):
     plt.savefig(r'Des/cluster_expansion/mixing_energy_comparison.png', bbox_inches='tight', dpi=360)
 
 
-def fit_energies(cif_dir: str, window: float = 1.5e-3) -> pd.DataFrame:
+def fit_energies(cif_dir: str, window: float = 6e-4) -> pd.DataFrame:
     """Predict the formation of every cif file in a directory."""
     ce = ClusterExpansion.read(r'Des/cluster_expansion/fitted_parameters.ce')
     ref = bcc_fe_primitive(V_PER_ATOM_FE)
@@ -275,7 +275,7 @@ def fit_energies(cif_dir: str, window: float = 1.5e-3) -> pd.DataFrame:
     return results
 
 
-def repredict_all_energies(window: float = 1.5e-3, refit: bool = False) -> pd.DataFrame:
+def repredict_all_energies(window: float = 6e-4, refit: bool = False) -> pd.DataFrame:
     """Re-predict the formation energies of all cif files in every prediction directory.
 
     Args:
