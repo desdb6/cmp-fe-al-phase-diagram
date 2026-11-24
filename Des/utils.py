@@ -28,8 +28,10 @@ RY_PER_ANG3_TO_KBAR_CONV = 10 * Ry / GPa
 V_PER_ATOM_FE = 11.65
 V_PER_ATOM_AL = 16.6
 
-# Formation energy paths
-PROJECT_ROOT = Path(os.environ.get("CMP_ROOT", "/home/des/cmp-fe-al-phase-diagram"))
+# utils.py lives in <repo>/Des/, so the repo root is one level up
+DEFAULT_ROOT = Path(__file__).resolve().parent.parent
+PROJECT_ROOT = Path(os.environ.get("CMP_ROOT", DEFAULT_ROOT))
+
 FORMATION_E_PATH_FE = PROJECT_ROOT / "Formation_Energies/bccFe/results.csv"
 FORMATION_E_PATH_AL = PROJECT_ROOT / "Formation_Energies/fccAl/results.csv"
 
@@ -100,6 +102,17 @@ def get_formation_energies():
 
     return {"Fe": float(fe_df["energy"].iloc[-1]),
             "Al": float(al_df["energy"].iloc[-1])}
+
+def get_volumes():
+    """
+    Simple function to get last calculated equilibrium volumes energies in Ang**3 from results file.
+    """
+    fe_df = pd.read_csv(FORMATION_E_PATH_FE)
+    al_df = pd.read_csv(FORMATION_E_PATH_AL)
+
+    return {"Fe": float(fe_df["volume"].iloc[-1]),
+            "Al": float(al_df["volume"].iloc[-1])}
+
 
 def get_equilibrium_volumes():
     """
