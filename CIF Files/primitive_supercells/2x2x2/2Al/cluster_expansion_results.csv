@@ -1,3 +1,3 @@
 Cif path,File,Chemical formula,Atoms,Al fraction,Predicted formation energy (Ry),Energy above composition minimum (Ry),Worth relaxing
-C:\Users\desde\Documents\GitHub\cmp-fe-al-phase-diagram\CIF Files\primitive_supercells\2x2x2\2Al\Fe6Al2_0_P4_mmm_m12.cif,Fe6Al2_0_P4_mmm_m12.cif,Al2Fe6,8,0.25,-0.01409766095897268,0.0,True
-C:\Users\desde\Documents\GitHub\cmp-fe-al-phase-diagram\CIF Files\primitive_supercells\2x2x2\2Al\Fe6Al2_1_R-3m_m16.cif,Fe6Al2_1_R-3m_m16.cif,Al2Fe6,8,0.25,-0.009470220597796447,0.004627440361176233,False
+C:\Users\desde\Documents\GitHub\cmp-fe-al-phase-diagram\CIF Files\primitive_supercells\2x2x2\2Al\Fe6Al2_0_P4_mmm_m12.cif,Fe6Al2_0_P4_mmm_m12.cif,Al2Fe6,8,0.25,-0.014064378102810093,0.0,True
+C:\Users\desde\Documents\GitHub\cmp-fe-al-phase-diagram\CIF Files\primitive_supercells\2x2x2\2Al\Fe6Al2_1_R-3m_m16.cif,Fe6Al2_1_R-3m_m16.cif,Al2Fe6,8,0.25,-0.009427771266961244,0.004636606835848848,False

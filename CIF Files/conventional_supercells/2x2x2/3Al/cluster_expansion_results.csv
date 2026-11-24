@@ -1,7 +1,7 @@
 Cif path,File,Chemical formula,Atoms,Al fraction,Predicted formation energy (Ry),Energy above composition minimum (Ry),Worth relaxing
-C:\Users\desde\Documents\GitHub\cmp-fe-al-phase-diagram\CIF Files\conventional_supercells\2x2x2\3Al\Fe13Al3_0_Pm-3m_m16.cif,Fe13Al3_0_Pm-3m_m16.cif,Al3Fe13,16,0.1875,-0.010367961115753594,0.0,True
-C:\Users\desde\Documents\GitHub\cmp-fe-al-phase-diagram\CIF Files\conventional_supercells\2x2x2\3Al\Fe13Al3_5_Cmm2_m192.cif,Fe13Al3_5_Cmm2_m192.cif,Al3Fe13,16,0.1875,-0.00940236109335809,0.0009656000223955043,False
-C:\Users\desde\Documents\GitHub\cmp-fe-al-phase-diagram\CIF Files\conventional_supercells\2x2x2\3Al\Fe13Al3_2_P4_mmm_m48.cif,Fe13Al3_2_P4_mmm_m48.cif,Al3Fe13,16,0.1875,-0.009059303650966239,0.0013086574647873557,False
-C:\Users\desde\Documents\GitHub\cmp-fe-al-phase-diagram\CIF Files\conventional_supercells\2x2x2\3Al\Fe13Al3_3_R-3m_m64.cif,Fe13Al3_3_R-3m_m64.cif,Al3Fe13,16,0.1875,-0.008376559158322106,0.0019914019574314885,False
-C:\Users\desde\Documents\GitHub\cmp-fe-al-phase-diagram\CIF Files\conventional_supercells\2x2x2\3Al\Fe13Al3_4_Amm2_m192.cif,Fe13Al3_4_Amm2_m192.cif,Al3Fe13,16,0.1875,-0.008304611646506182,0.0020633494692474125,False
-C:\Users\desde\Documents\GitHub\cmp-fe-al-phase-diagram\CIF Files\conventional_supercells\2x2x2\3Al\Fe13Al3_1_P4_mmm_m48.cif,Fe13Al3_1_P4_mmm_m48.cif,Al3Fe13,16,0.1875,-0.008146797503485017,0.002221163612268578,False
+C:\Users\desde\Documents\GitHub\cmp-fe-al-phase-diagram\CIF Files\conventional_supercells\2x2x2\3Al\Fe13Al3_0_Pm-3m_m16.cif,Fe13Al3_0_Pm-3m_m16.cif,Al3Fe13,16,0.1875,-0.010318093514890622,0.0,True
+C:\Users\desde\Documents\GitHub\cmp-fe-al-phase-diagram\CIF Files\conventional_supercells\2x2x2\3Al\Fe13Al3_5_Cmm2_m192.cif,Fe13Al3_5_Cmm2_m192.cif,Al3Fe13,16,0.1875,-0.009335202256710293,0.0009828912581803292,False
+C:\Users\desde\Documents\GitHub\cmp-fe-al-phase-diagram\CIF Files\conventional_supercells\2x2x2\3Al\Fe13Al3_2_P4_mmm_m48.cif,Fe13Al3_2_P4_mmm_m48.cif,Al3Fe13,16,0.1875,-0.009005043290649682,0.0013130502242409397,False
+C:\Users\desde\Documents\GitHub\cmp-fe-al-phase-diagram\CIF Files\conventional_supercells\2x2x2\3Al\Fe13Al3_3_R-3m_m64.cif,Fe13Al3_3_R-3m_m64.cif,Al3Fe13,16,0.1875,-0.008283142450223803,0.002034951064666819,False
+C:\Users\desde\Documents\GitHub\cmp-fe-al-phase-diagram\CIF Files\conventional_supercells\2x2x2\3Al\Fe13Al3_4_Amm2_m192.cif,Fe13Al3_4_Amm2_m192.cif,Al3Fe13,16,0.1875,-0.008280687770526263,0.002037405744364359,False
+C:\Users\desde\Documents\GitHub\cmp-fe-al-phase-diagram\CIF Files\conventional_supercells\2x2x2\3Al\Fe13Al3_1_P4_mmm_m48.cif,Fe13Al3_1_P4_mmm_m48.cif,Al3Fe13,16,0.1875,-0.008087587767954523,0.0022305057469360987,False
