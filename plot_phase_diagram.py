@@ -317,3 +317,4 @@ def vegard_law():
     plt.show()
 if __name__ == "__main__":
     vegard_law()
+    phase_diagram()
