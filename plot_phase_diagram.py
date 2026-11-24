@@ -1,3 +1,4 @@
+import re
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -7,6 +8,7 @@ from matplotlib.legend_handler import HandlerTuple
 from scipy.spatial import ConvexHull
 
 from Des.cluster_expansion import list_all_energies, find_cif
+from Des.utils import get_equilibrium_volumes
 
 DATA_PATH = "phase_diagram_data.csv"
 
@@ -259,7 +261,60 @@ def phase_diagram_ce():
 
     plt.show()
 
+def vegard_law():
+    df = pd.read_csv(DATA_PATH)
+    df = df[df["Include in plot"]==True]
+    df = df[df["Volume (Ang **3)"].notna()]
 
+    def count_atoms(formula: str) -> dict:
+        """'Fe52Al2' -> {'Fe': 52, 'Al': 2}; a missing number means 1 (e.g. 'Fe63Al')."""
+        counts = {}
+        for element, n in re.findall(r"([A-Z][a-z]?)(\d*)", formula):
+            counts[element] = counts.get(element, 0) + (int(n) if n else 1)
+        return counts
+    
+    counts = df["Chemical formula"].apply(count_atoms)
+    df["n_Fe"] = counts.apply(lambda c: c.get("Fe", 0))
+    df["n_Al"] = counts.apply(lambda c: c.get("Al", 0))
+
+    df["Volume per atom (Ang**3)"] = df["Volume (Ang **3)"] / (df["n_Fe"] + df["n_Al"])
+
+    pure_volumes = get_equilibrium_volumes()
+    df["Predicted volume per atom (Ang**3)"] = df["n_Fe"] * pure_volumes["Fe"] + df["n_Al"] * pure_volumes["Al"]
+
+    # Vegard's law: linear interpolation between the pure-element volumes per atom
+    x = np.linspace(0, 25, 100)
+    v_vegard = (1 - x / 100) * pure_volumes["Fe"] + (x / 100) * pure_volumes["Al"]
+
+    fig, ax = plt.subplots(figsize=(16, 10))
+
+    vegard_line, = ax.plot(x, v_vegard, color=BLUE, lw=2, zorder=1)
+
+    outer = ax.scatter(df["Al fraction"], df["Volume per atom (Ang**3)"],
+                       s=60, color=RED, zorder=2, clip_on=False)
+    inner = ax.scatter(df["Al fraction"], df["Volume per atom (Ang**3)"],
+                       s=20, color=YELLOW, zorder=3, clip_on=False)
+
+    ax.set_xlim(0, 25)
+    ax.set_ylim(10, 13)
+    ax.margins(y=0.1)
+    ax.tick_params(labelsize=12)
+    ax.set_xlabel("% Al", fontsize=16)
+    ax.set_ylabel(r"Volume per atom ($\mathrm{\AA}^3$)", fontsize=16)
+    ax.set_title("Calculated and predicted volume as a function of % Al", fontsize=16)
+    ax.grid(alpha=0.6)
+
+    ax.legend(
+        [(outer, inner), vegard_line],
+        ["DFT", "Vegard's law"],
+        handler_map={tuple: HandlerTuple(ndivide=1)},
+        loc="upper left",
+        fontsize=12,
+    )
+
+    fig.savefig("Vegard Law.png", dpi=360, bbox_inches="tight")
+    fig.savefig("Vegard Law.pdf", bbox_inches="tight")
+    plt.show()
 if __name__ == "__main__":
+    vegard_law()
     phase_diagram()
-    phase_diagram_ce()
