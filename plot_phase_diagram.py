@@ -5,6 +5,7 @@ import pandas as pd
 from matplotlib.artist import Artist
 from matplotlib.offsetbox import TextArea, HPacker, VPacker, AnnotationBbox
 from matplotlib.legend_handler import HandlerTuple
+from scipy.stats import linregress
 from scipy.spatial import ConvexHull
 
 from Des.cluster_expansion import list_all_energies, find_cif
@@ -15,6 +16,7 @@ DATA_PATH = "phase_diagram_data.csv"
 RED = "#cc0101"
 YELLOW = "#f1ed00"
 BLUE = "#0084FF"
+GRAY = "#4D4D4D"
 
 def phase_diagram():
     df = pd.read_csv(DATA_PATH)
@@ -276,27 +278,55 @@ def vegard_law():
     counts = df["Chemical formula"].apply(count_atoms)
     df["n_Fe"] = counts.apply(lambda c: c.get("Fe", 0))
     df["n_Al"] = counts.apply(lambda c: c.get("Al", 0))
+    df.loc[df["Chemical formula"] == "bcc-Fe", "n_Fe"] = 2
 
     df["Volume per atom (Ang**3)"] = df["Volume (Ang **3)"] / (df["n_Fe"] + df["n_Al"])
 
     pure_volumes = get_equilibrium_volumes()
     df["Predicted volume per atom (Ang**3)"] = df["n_Fe"] * pure_volumes["Fe"] + df["n_Al"] * pure_volumes["Al"]
 
-    # Vegard's law: linear interpolation between the pure-element volumes per atom
     x = np.linspace(0, 25, 100)
-    v_vegard = (1 - x / 100) * pure_volumes["Fe"] + (x / 100) * pure_volumes["Al"]
+    # Vegard's law: V = intercept + slope * x   (x in % Al)
+    vegard_slope = (pure_volumes["Al"] - pure_volumes["Fe"]) / 100
+    vegard_intercept = pure_volumes["Fe"]
+    v_vegard = vegard_slope * x + vegard_intercept
+
+    # Linear fit
+    linreg_result = linregress(df["Al fraction"], df["Volume per atom (Ang**3)"])
+    v_fit = linreg_result.slope * x + linreg_result.intercept
+
+    n_points = len(df)
+    dof = n_points - 2
+
+    print("=" * 55)
+    print("Linear fit: V = intercept + slope * x   (x in % Al)")
+    print("=" * 55)
+    print(f"Number of points : {n_points}")
+    print(f"Intercept        : {linreg_result.intercept:.4f} ± {linreg_result.intercept_stderr:.4f} Å³/atom")
+    print(f"Slope            : {linreg_result.slope:.5f} ± {linreg_result.stderr:.5f} Å³/atom per % Al")
+    print()
+    print("Vegard's law")
+    print(f"Intercept (V_Fe) : {vegard_intercept:.4f} Å³/atom")
+    print(f"Slope            : {vegard_slope:.5f} Å³/atom per % Al")
+    print(f"Fit - Vegard slope: {linreg_result.slope - vegard_slope:+.5f} "
+        f"({(linreg_result.slope - vegard_slope) / linreg_result.stderr:+.1f} σ)")
+    print("=" * 55)
+
+    vegard_label = (rf"Vegard's law: $V = ({vegard_intercept:.3f} {vegard_slope:+.4f}\,\mathrm{{\%Al}})\ \mathrm{{\AA}}^3$")
+    fit_label = (rf"Linear fit: $V = ({linreg_result.intercept:.3f} {linreg_result.slope:+.4f}\,\mathrm{{\%Al}})\ \mathrm{{\AA}}^3$")
 
     fig, ax = plt.subplots(figsize=(16, 10))
 
     vegard_line, = ax.plot(x, v_vegard, color=BLUE, lw=2, zorder=1)
+    fit_line, = ax.plot(x, v_fit, color=GRAY, linestyle="--", alpha=0.7, lw=2, zorder=1)
 
     outer = ax.scatter(df["Al fraction"], df["Volume per atom (Ang**3)"],
-                       s=60, color=RED, zorder=2, clip_on=False)
+                       s=40, color=RED, zorder=2, clip_on=False)
     inner = ax.scatter(df["Al fraction"], df["Volume per atom (Ang**3)"],
-                       s=20, color=YELLOW, zorder=3, clip_on=False)
+                       s=12, color=YELLOW, zorder=3, clip_on=False)
 
     ax.set_xlim(0, 25)
-    ax.set_ylim(10, 13)
+    ax.set_ylim(11, 13)
     ax.margins(y=0.1)
     ax.tick_params(labelsize=12)
     ax.set_xlabel("% Al", fontsize=16)
@@ -305,8 +335,8 @@ def vegard_law():
     ax.grid(alpha=0.6)
 
     ax.legend(
-        [(outer, inner), vegard_line],
-        ["DFT", "Vegard's law"],
+        [(outer, inner), vegard_line, fit_line],
+        ["DFT", vegard_label, fit_label],
         handler_map={tuple: HandlerTuple(ndivide=1)},
         loc="upper left",
         fontsize=12,
@@ -315,6 +345,7 @@ def vegard_law():
     fig.savefig("Vegard Law.png", dpi=360, bbox_inches="tight")
     fig.savefig("Vegard Law.pdf", bbox_inches="tight")
     plt.show()
+
 if __name__ == "__main__":
     vegard_law()
     phase_diagram()
