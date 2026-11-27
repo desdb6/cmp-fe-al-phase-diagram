@@ -384,4 +384,5 @@ if __name__ == "__main__":
     # write_results_ineq_supercells(structs, output_dir=r"C:\Users\desde\Documents\GitHub\cmp-fe-al-phase-diagram\CIF Files\primitive_supercells\3x3x3\6Al")
     read_out_file_cif(r"Des\step5_numbercrunching\primitive\3x3x3\Al4\Fe23Al4_00_I-43m_m54\espresso.pwo", r"CIF Files\hull_structures\Fe23Al4_00_I-43m_m54_relaxed.cif")
     read_out_file_cif(r"CIF Files\primitive_supercells\3x3x3\6Al\C2_m.pwo", r"CIF Files\hull_structures\Fe21Al6_010_C2_m_m108_relaxed.cif")
+    read_out_file_cif(r"Wodan\Runsresults_hpc\Fe6Al2_0_P4_mmm_LOW\espresso.pwo", r"CIF Files\hull_structures\Fe6Al2_0_P4_mmm_relaxed.cif")
    
