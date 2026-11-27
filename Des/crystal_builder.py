@@ -366,6 +366,22 @@ def write_results_ineq_supercells(struct_dict: dict, output_dir: str, max_cifs=N
     # Use the ranked dict so the summary matches the cif file names (was: struct_dict)
     save_nested_dict_csv(renumbered, os.path.join(output_dir, "summary.csv"), index_label="Symmetry rank")
 
+
+def read_out_file_cif(out_path: str, cif_path: str):
+    """
+    Read a Quantum ESPRESSO pw.x output file and write the last structure
+    in it to a CIF file.
+    """
+    out_path, cif_path = Path(out_path), Path(cif_path)
+
+    atoms = read(out_path, format="espresso-out", index=-1)
+    cif_path.parent.mkdir(parents=True, exist_ok=True)
+    write(cif_path, atoms, format="cif")
+    return atoms
+
 if __name__ == "__main__":
-    structs = gen_sym_ineq_supercells(3, 6, (6 * V_PER_ATOM_AL + 21* V_PER_ATOM_FE) / 8, cell_type="primitive")
+    # structs = gen_sym_ineq_supercells(3, 6, (6 * V_PER_ATOM_AL + 21* V_PER_ATOM_FE) / 8, cell_type="primitive")
     # write_results_ineq_supercells(structs, output_dir=r"C:\Users\desde\Documents\GitHub\cmp-fe-al-phase-diagram\CIF Files\primitive_supercells\3x3x3\6Al")
+    read_out_file_cif(r"Des\step5_numbercrunching\primitive\3x3x3\Al4\Fe23Al4_00_I-43m_m54\espresso.pwo", r"CIF Files\hull_structures\Fe23Al4_00_I-43m_m54_relaxed.cif")
+    read_out_file_cif(r"CIF Files\primitive_supercells\3x3x3\6Al\C2_m.pwo", r"CIF Files\hull_structures\Fe21Al6_010_C2_m_m108_relaxed.cif")
+   
