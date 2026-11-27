@@ -6,10 +6,14 @@ Email: des.deborger@student.uantwerpen.be
 Last modified: 12/11/2026
 """
 
+import os
+from pathlib import Path
 import argparse
 from datetime import datetime
 import sys
 sys.stdout.reconfigure(line_buffering=True)
+
+import numpy as np
 
 from utils import *
 from calculations import run_calculation, VC_RELAX_SETTINGS_HIGH, VC_RELAX_SETTINGS_LOW
@@ -23,14 +27,16 @@ parser = argparse.ArgumentParser(
 )
 parser.add_argument("--cif", required=True, help="Input CIF file")
 parser.add_argument("--output_dir", required=True, help="Base output folder")
-parser.add_argument("--p_min", type=float, required=True, help="Lowest target pressure (kbar)")
-parser.add_argument("--p_max", type=float, required=True, help="Highest target pressure (kbar)")
-parser.add_argument("--n_points", type=int, required=True, help="Number of pressure points")
+parser.add_argument("--p_max", type=float, required=True,
+                    help="Maximum |pressure| (kbar); range is -p_max .. +p_max")
+parser.add_argument("--n_points", type=int, default=8,
+                    help="Number of pressure points, zero excluded (must be even, default 8)")
 parser.add_argument("--index", type=int, required=True, help="Pressure point index (0-based)")
 parser.add_argument("--bulk_modulus_guess", type=float, help="Initial guess for the bulk modulus (GPa)")
 parser.add_argument("--settings", choices=["low", "high"], default="low",
                     help="Calculation settings: 'low' (default) or 'high'")
 args = parser.parse_args()
+
 
 # Pressure for this array task
 if args.n_points < 2 or args.n_points % 2 != 0:
@@ -45,12 +51,13 @@ pressure = float(pressures[args.index])
 # Load and rescale the structure if needed
 structure = read_cif(args.cif)
 if args.bulk_modulus_guess is not None:
-    volume_ratio = -args.target_press / args.bulk_modulus_guess * 0.1 # Conversion from kbar to GPa
-    structure.set_cell(structure.cell * volume_ratio ** (1/3), scale_atoms=True)
+    pressure_gpa = pressure * 0.1  # kbar -> GPa
+    volume_ratio = 1.0 - pressure_gpa / args.bulk_modulus_guess
+    structure.set_cell(structure.cell * volume_ratio ** (1 / 3), scale_atoms=True)
 
 # Change the target pressure
 settings = VC_RELAX_SETTINGS_LOW if args.settings == "low" else VC_RELAX_SETTINGS_HIGH
-settings_targetpress = replace(settings, target_press=args.target_pressure)
+settings_targetpress = replace(settings, target_press=pressure)
 
 # Per-pressure output folder
 calc_dir = Path(args.output_dir) / f"P_{pressure:+.1f}kbar"

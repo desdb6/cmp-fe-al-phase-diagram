@@ -184,7 +184,15 @@ def place_labels(fig, ax, df, make_box, hull, legend=None,
             box_alignment=(0.5, 0.5),
             pad=0,
             frameon=False,
-            annotation_clip=False
+            annotation_clip=False,
+            arrowprops=dict(
+                arrowstyle="-",
+                color="gray",
+                lw=0.6,
+                shrinkA=0,
+                shrinkB=3,
+                connectionstyle="arc3",
+            ),
         )
 
         ax.add_artist(ab)
@@ -302,11 +310,10 @@ def phase_diagram(labels="near_hull", show_extra=False, near_hull_mev=4.0):
         obstacle_df=df
     )
 
-    place_labels(fig, ax, label_df, make_box, hull, legend=leg)
-
     plt.savefig("Phase Diagram.png", dpi=360)
     fig.savefig("Phase Diagram.pdf", bbox_inches="tight")
     plt.show()
+
 def phase_diagram_ce():
     full_df = pd.read_csv(DATA_PATH)
     df = full_df[full_df["Include in plot"] == True]
@@ -523,3 +530,4 @@ def vegard_law():
 if __name__ == "__main__":
     vegard_law()
     phase_diagram()
+    phase_diagram_ce()

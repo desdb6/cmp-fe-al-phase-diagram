@@ -20,11 +20,19 @@ from itertools import combinations
 
 from ase import Atoms
 from ase.cell import Cell
+from ase.units import Ry
 from icet import ClusterSpace, StructureContainer, ClusterExpansion
 from trainstation import CrossValidationEstimator
 from icet.tools.structure_mapping import map_structure_to_reference
 from pymatgen.analysis.structure_matcher import StructureMatcher
 from pymatgen.io.ase import AseAtomsAdaptor
+
+RY_TO_MEV_CONV = Ry * 1000
+
+RED = "#cc0101"
+YELLOW = "#ffec46"
+BLUE = "#0084FF"
+GRAY = "#4D4D4D"
 
 try:
     from Des.utils import *
@@ -81,7 +89,11 @@ def find_cif(index: int, chemical_formula: str, root: Path = CIF_DIR) -> Path:
     pattern = re.compile(
         rf"^{re.escape(chemical_formula)}_0*{index}_.*\.cif$"
     )
-    matches = [p for p in root.rglob("*.cif") if pattern.match(p.name)]
+    matches = [
+        p for p in root.rglob("*.cif")
+        if pattern.match(p.name)
+        and "hull_structures" not in p.relative_to(root).parts
+    ]
 
     if not matches:
         raise FileNotFoundError(
@@ -184,7 +196,7 @@ def cluster_expansion(df: pd.DataFrame):
     """Perform a cluster expansion on preprocessed data."""
     primitive_structure = bcc_fe_primitive(V_PER_ATOM_FE)
     cs = ClusterSpace(structure=primitive_structure,
-                  cutoffs=[13.5, 8.0, 6.0],
+                  cutoffs=[6.5, 5.5, 5.0],
                   chemical_symbols=['Al', 'Fe'])
     sc = StructureContainer(cluster_space=cs)
     for structure, energy, tag in zip(df["Structure"], df["Formation energy (Ry)"], df["Cif path"]):
@@ -193,7 +205,8 @@ def cluster_expansion(df: pd.DataFrame):
         sc.add_structure(structure=ideal, user_tag=str(tag),
                         properties={"mixing_energy": energy})
     opt = CrossValidationEstimator(
-        fit_data=sc.get_fit_data(key='mixing_energy'), fit_method='ardr')
+        fit_data=sc.get_fit_data(key='mixing_energy'), fit_method='ardr', threshold_lambda=1e4
+        )
     opt.validate()
     opt.train()
     print(opt)
@@ -201,6 +214,13 @@ def cluster_expansion(df: pd.DataFrame):
     print("non-zero parameters:", opt.n_nonzero_parameters)
     print("train RMSE:", opt.rmse_train)
     print("CV RMSE:   ", opt.rmse_validation)
+
+    A, y = sc.get_fit_data(key="mixing_energy")
+    print("fit matrix:", A.shape, " rank:", np.linalg.matrix_rank(A, tol=1e-8))
+
+    # Group identical columns (orbits the training set cannot tell apart)
+    _, first, counts = np.unique(np.round(A, 8), axis=1, return_index=True, return_counts=True)
+    print("unique columns:", len(first), "of", A.shape[1])
 
     ce = ClusterExpansion(
         cluster_space=cs, parameters=opt.parameters, metadata=opt.summary)
@@ -417,6 +437,138 @@ def plot_predicted_energies():
 
     plt.show()
 
+def plot_eci_results():
+    """Plot the effective cluster interactions against cluster radius."""
+    ce = ClusterExpansion.read(r'Des/cluster_expansion/fitted_parameters.ce')
+    d = ce.to_dataframe()
+
+    # Order 0 is the constant term, order 1 the singlet; plot only pairs and triplets
+    d = d[d["order"] >= 2].copy()
+    d["eci_mev"] = d["eci"] * RY_TO_MEV_CONV
+    d["weighted_mev"] = d["eci_mev"] * d["multiplicity"]
+
+    nonzero = d[d["eci"] != 0]
+    print(f"{len(nonzero)} of {len(d)} pair/triplet orbits have non-zero ECIs")
+    print(nonzero[["order", "radius", "multiplicity", "eci_mev"]]
+          .sort_values("radius").to_string(index=False))
+
+    fig, ax = plt.subplots(figsize=(8, 6))
+    for order, color, label, zorder in [(2, RED, "Pairs", 4), (3, BLUE, "Triplets", 3), (4, YELLOW, "Quadruplets", 2)]:
+        sub = d[d["order"] == order]
+        ax.scatter(sub["radius"], sub["eci_mev"], color=color, label=label, zorder=zorder, alpha=0.7)
+    ax.axhline(0, color=GRAY, lw=2, linestyle="--", zorder=1)
+    ax.set_xlabel("Cluster radius (Å)")
+    ax.set_ylabel("ECI (meV)")
+    ax.grid(alpha=0.5)
+    ax.legend()
+
+    plt.savefig(r'Des/cluster_expansion/eci_vs_radius.png', bbox_inches="tight", dpi=360)
+    plt.show()
+
+def cutoff_sweep(cutoff_sets=None, seeds=(0, 1, 2)):
+    """Compare train/CV error and the 1NN pair ECI for different cutoffs."""
+    if cutoff_sets is None:
+        cutoff_sets = ([6.0, 5.0, 4.0], [7.0, 5.5, 4.5], [8.0, 6.0, 5.0],
+                       [10.0, 7.0, 5.0])
+
+    df = preprocess()
+    primitive_structure = bcc_fe_primitive(V_PER_ATOM_FE)
+
+    # The mapping does not depend on the cutoffs, so do it once
+    ideals = [map_structure_to_reference(s, primitive_structure)[0]
+              for s in df["Structure"]]
+
+    def get_1nn_eci(ce):
+        """Return the 1NN pair ECI in meV."""
+        d = ce.to_dataframe()
+        pairs = d[d["order"] == 2].sort_values("radius")
+        return pairs.iloc[0]["eci"] * RY_TO_MEV_CONV
+
+    def test_cutoff(cutoffs):
+        cs = ClusterSpace(structure=primitive_structure,
+                          cutoffs=cutoffs,
+                          chemical_symbols=['Al', 'Fe'])
+        sc = StructureContainer(cluster_space=cs)
+        for ideal, energy, tag in zip(ideals, df["Formation energy (Ry)"], df["Cif path"]):
+            sc.add_structure(structure=ideal, user_tag=str(tag),
+                             properties={"mixing_energy": energy})
+
+        cv_rmses = []
+        for seed in seeds:
+            opt = CrossValidationEstimator(
+                fit_data=sc.get_fit_data(key='mixing_energy'),
+                fit_method='ardr', seed=seed)
+            opt.validate()
+            cv_rmses.append(opt.rmse_validation * RY_TO_MEV_CONV)
+
+        opt.train()  # final fit on all data (last seed) for the ECIs
+        ce = ClusterExpansion(cluster_space=cs, parameters=opt.parameters,
+                              metadata=opt.summary)
+        return {
+            "cutoffs": str(cutoffs),
+            "n_params": len(cs),
+            "n_nonzero": opt.n_nonzero_parameters,
+            "train RMSE (meV)": opt.rmse_train * RY_TO_MEV_CONV,
+            "CV RMSE mean (meV)": np.mean(cv_rmses),
+            "CV RMSE std (meV)": np.std(cv_rmses),
+            "1NN ECI (meV)": get_1nn_eci(ce),
+        }
+
+    results = pd.DataFrame([test_cutoff(c) for c in cutoff_sets])
+    print(results.to_string(index=False, float_format=lambda x: f"{x:.2f}"))
+    return results
+
+def cluster_pruning_sweep(lambda_sets=None, seeds=(0, 1, 2)):
+    """Compare train/CV error and the 1NN pair ECI for different cutoffs."""
+    if lambda_sets is None:
+        lambda_sets = [10 ** n for n in [3, 4, 5, 6, 7]]
+
+    df = preprocess()
+    primitive_structure = bcc_fe_primitive(V_PER_ATOM_FE)
+
+    # The mapping does not depend on the cutoffs, so do it once
+    ideals = [map_structure_to_reference(s, primitive_structure)[0]
+              for s in df["Structure"]]
+
+    def get_1nn_eci(ce):
+        """Return the 1NN pair ECI in meV."""
+        d = ce.to_dataframe()
+        pairs = d[d["order"] == 2].sort_values("radius")
+        return pairs.iloc[0]["eci"] * RY_TO_MEV_CONV
+
+    def test_lambda(l):
+        cs = ClusterSpace(structure=primitive_structure,
+                          cutoffs=[8.0, 5.5, 5.0],
+                          chemical_symbols=['Al', 'Fe'])
+        sc = StructureContainer(cluster_space=cs)
+        for ideal, energy, tag in zip(ideals, df["Formation energy (Ry)"], df["Cif path"]):
+            sc.add_structure(structure=ideal, user_tag=str(tag),
+                             properties={"mixing_energy": energy})
+
+        cv_rmses = []
+        for seed in seeds:
+            opt = CrossValidationEstimator(
+                fit_data=sc.get_fit_data(key='mixing_energy'),
+                fit_method='ardr', seed=seed, threshold_lambda=l)
+            opt.validate()
+            cv_rmses.append(opt.rmse_validation * RY_TO_MEV_CONV)
+
+        opt.train()  # final fit on all data (last seed) for the ECIs
+        ce = ClusterExpansion(cluster_space=cs, parameters=opt.parameters,
+                              metadata=opt.summary)
+        return {
+            "lambda": str(l),
+            "n_params": len(cs),
+            "n_nonzero": opt.n_nonzero_parameters,
+            "train RMSE (meV)": opt.rmse_train * RY_TO_MEV_CONV,
+            "CV RMSE mean (meV)": np.mean(cv_rmses),
+            "CV RMSE std (meV)": np.std(cv_rmses),
+            "1NN ECI (meV)": get_1nn_eci(ce),
+        }
+
+    results = pd.DataFrame([test_lambda(l) for l in lambda_sets])
+    print(results.to_string(index=False, float_format=lambda x: f"{x:.2f}"))
+    return results
 
 def main():
     df = preprocess()
@@ -426,4 +578,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-    plot_predicted_energies()
+    plot_eci_results()

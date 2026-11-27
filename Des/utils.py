@@ -22,6 +22,7 @@ UNIT_DICT = {"energy": "Ry", "pressure": "kbar", "magnetization": "muB/cell"}
 
 # Conversion constants
 EV_TO_RY_CONV = 1 / Ry
+RY_TO_MEV_CONV = Ry * 1000
 RY_PER_ANG3_TO_KBAR_CONV = 10 * Ry / GPa
 
 # Experimental bcc and fcc volumes
