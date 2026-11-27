@@ -18,17 +18,189 @@ YELLOW = "#f1ed00"
 BLUE = "#0084FF"
 GRAY = "#4D4D4D"
 
-def phase_diagram():
+RY_TO_MEV = 13_605.693
+
+def place_labels(fig, ax, df, make_box, hull, legend=None,
+                 obstacle_df=None, point_pad=5, line_pad=3,
+                 box_pad=3, gap=6, max_vertical_steps=8):
+    """Place labels next to points, preferring the right side, without overlaps."""
+    fig.canvas.draw()
+    renderer = fig.canvas.get_renderer()
+    k = fig.dpi / 72.0
+
+    df = df.reset_index(drop=True)
+    X = df["Al fraction"].to_numpy(float)
+    Y = df["Formation energy (Ry)"].to_numpy(float)
+    pts = ax.transData.transform(np.column_stack([X, Y]))
+
+    # All plotted data points are obstacles, including unlabelled ones
+    if obstacle_df is None:
+        obstacle_df = df
+
+    marker_pts = ax.transData.transform(
+        np.column_stack([
+            obstacle_df["Al fraction"].to_numpy(float),
+            obstacle_df["Formation energy (Ry)"].to_numpy(float)
+        ])
+    )
+
+    # Hull line is also an obstacle
+    seg = [
+        np.column_stack([
+            np.linspace(a[0], b[0], 80),
+            np.linspace(a[1], b[1], 80)
+        ])
+        for a, b in zip(hull[:-1], hull[1:])
+    ]
+
+    hull_px = ax.transData.transform(np.vstack(seg))
+    fixed = np.vstack([marker_pts, hull_px])
+
+    fixed_pad = np.concatenate([
+        np.full(len(marker_pts), point_pad),
+        np.full(len(hull_px), line_pad)
+    ])
+
+    # Keep track of already occupied label positions
+    boxes = np.empty((0, 4))
+
+    if legend is not None:
+        bb = legend.get_window_extent(renderer)
+        boxes = np.vstack([boxes, [bb.x0, bb.y0, bb.x1, bb.y1]])
+
+    xmin, xmax = ax.bbox.x0 + 4, fig.bbox.x1 - 4
+    ymin, ymax = ax.bbox.y0 + 4, ax.bbox.y1 - 4
+
+    def measure(row):
+        tmp = AnnotationBbox(
+            make_box(row), (0, 0), xybox=(0, 0),
+            boxcoords="offset points",
+            box_alignment=(0.5, 0.5),
+            pad=0, frameon=False
+        )
+        ax.add_artist(tmp)
+        bb = tmp.get_window_extent(renderer)
+        tmp.remove()
+        return bb.width, bb.height
+
+    def count_hits(x0, y0, x1, y1):
+        hits = 0
+
+        # Previously placed labels
+        if len(boxes):
+            hits += np.count_nonzero(
+                (x0 < boxes[:, 2] + box_pad) &
+                (x1 > boxes[:, 0] - box_pad) &
+                (y0 < boxes[:, 3] + box_pad) &
+                (y1 > boxes[:, 1] - box_pad)
+            )
+
+        # Data points and hull line
+        hits += np.count_nonzero(
+            (fixed[:, 0] > x0 - fixed_pad) &
+            (fixed[:, 0] < x1 + fixed_pad) &
+            (fixed[:, 1] > y0 - fixed_pad) &
+            (fixed[:, 1] < y1 + fixed_pad)
+        )
+
+        return hits
+
+    # Prioritise hull points, then points closest to the hull
+    is_hull = np.array([
+        np.any(
+            np.isclose(x, hull[:, 0], atol=1e-9) &
+            np.isclose(y, hull[:, 1], atol=1e-12)
+        )
+        for x, y in zip(X, Y)
+    ])
+
+    above_hull = np.maximum(
+        0,
+        Y - np.interp(X, hull[:, 0], hull[:, 1])
+    )
+
+    crowd = (
+        np.linalg.norm(pts[:, None, :] - pts[None, :, :], axis=2) < 40
+    ).sum(axis=1)
+
+    order = np.lexsort((-crowd, above_hull, ~is_hull))
+
+    for i in order:
+        row = df.iloc[i]
+
+        if make_box(row) is None:
+            continue
+
+        w, h = measure(row)
+        px, py = pts[i]
+
+        # Vertical stacking positions, starting directly beside the dot
+        step = max(8.0, h / k + 2.0)
+        vertical_offsets = [0.0]
+
+        for n in range(1, max_vertical_steps + 1):
+            vertical_offsets.extend([n * step, -n * step])
+
+        best = None
+
+        # Try the right side first; only use the left if necessary
+        for side in ("right", "left"):
+            for dy in vertical_offsets:
+
+                if side == "right":
+                    cx = px + gap * k + w / 2
+                else:
+                    cx = px - gap * k - w / 2
+
+                cy = py + dy * k
+
+                x0, x1 = cx - w / 2, cx + w / 2
+                y0, y1 = cy - h / 2, cy + h / 2
+
+                # Stay within the available figure space
+                if x0 < xmin or x1 > xmax or y0 < ymin or y1 > ymax:
+                    continue
+
+                if count_hits(x0, y0, x1, y1) == 0:
+                    best = (cx, cy, x0, y0, x1, y1)
+                    break
+
+            if best is not None:
+                break
+
+        if best is None:
+            print(f"Could not place label for row {i}; skipped")
+            continue
+
+        cx, cy, x0, y0, x1, y1 = best
+
+        # No arrowprops: labels have no connecting lines
+        ab = AnnotationBbox(
+            make_box(row),
+            (X[i], Y[i]),
+            xybox=((cx - px) / k, (cy - py) / k),
+            xycoords="data",
+            boxcoords="offset points",
+            box_alignment=(0.5, 0.5),
+            pad=0,
+            frameon=False,
+            annotation_clip=False
+        )
+
+        ax.add_artist(ab)
+        boxes = np.vstack([boxes, [x0, y0, x1, y1]])
+
+def phase_diagram(labels="near_hull", show_extra=False, near_hull_mev=4.0):
+    """labels: 'all' or 'hull' (only hull vertices).
+    show_extra: also show the 'Additional label' and the date under each label."""
     df = pd.read_csv(DATA_PATH)
     df = df[df["Include in plot"]==True]
 
-    # Split polarized and non polarized calculations
     spin_polarized_df = df[df["Spin polarized"]==True]
     non_spin_polarized_df = df[df["Spin polarized"]==False]
 
     fig, ax = plt.subplots(figsize=(16, 10))
 
-    # Spin polarized data
     outer = ax.scatter(
         x=spin_polarized_df["Al fraction"],
         y=spin_polarized_df["Formation energy (Ry)"],
@@ -39,8 +211,6 @@ def phase_diagram():
         y=spin_polarized_df["Formation energy (Ry)"],
         s=20, color=YELLOW, zorder=3, clip_on=False
     )
-
-    # Non polarized data
     non_pol = ax.scatter(
         x=non_spin_polarized_df["Al fraction"],
         y=non_spin_polarized_df["Formation energy (Ry)"],
@@ -52,12 +222,8 @@ def phase_diagram():
     ref_y = [0.0, 0.0]
     hull_x = np.concatenate([df["Al fraction"].to_numpy(), ref_x])
     hull_y = np.concatenate([df["Formation energy (Ry)"].to_numpy(), ref_y])
-
-    # x is in %, y is in Ry: rescale x to a fraction so Qhull's tolerances behave
     points = np.column_stack([hull_x / 100, hull_y])
     ch = ConvexHull(points)
-
-    # Keep only the lower facets: outward normal has a negative y-component
     lower_simplices = ch.simplices[ch.equations[:, 1] < -1e-12]
     hull_idx = np.unique(lower_simplices.ravel())
     hull = np.column_stack([hull_x[hull_idx], hull_y[hull_idx]])
@@ -65,13 +231,9 @@ def phase_diagram():
 
     ax.scatter(hull[:, 0], hull[:, 1], s=140, facecolors="none",
             edgecolors="black", lw=1.2, zorder=4, clip_on=False)
+    hull_line, = ax.plot(hull[:, 0], hull[:, 1], color="black", lw=1.2, ls="--", zorder=1)
 
-    hull_line, = ax.plot(
-        hull[:, 0], hull[:, 1],
-        color="black", lw=1.2, ls="--", zorder=1,
-    )
-
-    ax.legend(
+    leg = ax.legend(
         [(outer, inner), non_pol, hull_line],
         ["Spin polarized", "Non spin polarized", "Convex hull"],
         handler_map={tuple: HandlerTuple(ndivide=1)},
@@ -79,60 +241,72 @@ def phase_diagram():
         fontsize=12,
     )
 
-    # Add labels
-    styles = [
-        ("Chemical formula", 12, "black"),
-        ("Space group",      8, "black"),
-        ("Additional label",  6, "gray"),
-    ]
-
-    for idx, row in df.iterrows():
-        parts: list[Artist] = [
-            TextArea(str(row[col]), textprops=dict(fontsize=fs, color=color))
-            for col, fs, color in styles
-            if pd.notna(row[col])
-        ]
-        if not parts:
-            continue
-
-        line = HPacker(children=parts, align="baseline", pad=0, sep=2)
-        rows: list[Artist] = [line]
-
-        if pd.notna(row.get("Date")):
-            rows.append(TextArea(str(row["Date"]), textprops=dict(fontsize=6, color="gray")))
-
-        box = VPacker(children=rows, align="left", pad=0, sep=1)
-
-        ab = AnnotationBbox(
-            box, (row["Al fraction"], row["Formation energy (Ry)"]),
-            xybox=(12, 8), boxcoords="offset points",
-            box_alignment=(0, 0.5),
-            frameon=False,
-            annotation_clip=False,
-        )
-        ax.add_artist(ab)
-
-
-    # Set limits
+    # Limits, axes (must be final before placing labels)
     ax.set_xlim(0, 25)
     ax.margins(y=0.5)
     ax.set_ylim(top=0)
-
-    # Move x axis ticks to top
     ax.tick_params(top=True, labeltop=True, bottom=False, labelbottom=False)
     ax.tick_params(left=True, labelleft=True, right=False, labelright=False)
-
-    # Labels
     ax.set_xlabel("% Al", fontsize=16)
     ax.xaxis.set_label_position("top")
     ax.set_ylabel(r"$E_{\mathrm{form}}$ (Ry/atom)", fontsize=16)
     ax.grid(alpha=0.6)
+    fig.subplots_adjust(left=0.07, right=0.80, top=0.90, bottom=0.06)  # right margin holds labels
+
+    # Labels
+    styles = [("Chemical formula", 9, "black"), ("Space group", 7, "black")]
+    if show_extra:
+        styles.append(("Additional label", 6, "gray"))
+
+    def make_box(row):
+        parts = [TextArea(str(row[col]), textprops=dict(fontsize=fs, color=color))
+                 for col, fs, color in styles if pd.notna(row[col])]
+        if not parts:
+            return None
+        rows = [HPacker(children=parts, align="baseline", pad=0, sep=2)]
+        if show_extra and pd.notna(row.get("Date")):
+            rows.append(TextArea(str(row["Date"]), textprops=dict(fontsize=6, color="gray")))
+        return VPacker(children=rows, align="left", pad=0, sep=1)
+
+    label_df = df
+
+    if labels == "hull":
+        on_hull = [
+            np.any(
+                np.isclose(x, hull[:, 0], atol=1e-9) &
+                np.isclose(y, hull[:, 1], atol=1e-12)
+            )
+            for x, y in zip(df["Al fraction"], df["Formation energy (Ry)"])
+        ]
+        label_df = df[on_hull]
+
+    elif labels == "near_hull":
+        hull_at_points = np.interp(
+            df["Al fraction"],
+            hull[:, 0],
+            hull[:, 1]
+        )
+
+        energy_above_hull_mev = (
+            df["Formation energy (Ry)"].to_numpy() - hull_at_points
+        ) * RY_TO_MEV
+
+        label_df = df[energy_above_hull_mev <= near_hull_mev]
+
+    elif labels != "all":
+        raise ValueError("labels must be 'all', 'hull', or 'near_hull'")
+
+    place_labels(
+        fig, ax, label_df, make_box, hull,
+        legend=leg,
+        obstacle_df=df
+    )
+
+    place_labels(fig, ax, label_df, make_box, hull, legend=leg)
 
     plt.savefig("Phase Diagram.png", dpi=360)
-    fig.savefig("Phase Diagram.pdf", bbox_inches="tight")   # vector, good for the report
-
+    fig.savefig("Phase Diagram.pdf", bbox_inches="tight")
     plt.show()
-
 def phase_diagram_ce():
     full_df = pd.read_csv(DATA_PATH)
     df = full_df[full_df["Include in plot"] == True]
