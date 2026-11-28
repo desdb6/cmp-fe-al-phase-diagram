@@ -30,7 +30,7 @@ def place_labels(fig, ax, df, make_box, hull, legend=None,
 
     df = df.reset_index(drop=True)
     X = df["Al fraction"].to_numpy(float)
-    Y = df["Formation energy (Ry)"].to_numpy(float)
+    Y = df["Formation energy (meV)"].to_numpy(float)
     pts = ax.transData.transform(np.column_stack([X, Y]))
 
     # All plotted data points are obstacles, including unlabelled ones
@@ -40,7 +40,7 @@ def place_labels(fig, ax, df, make_box, hull, legend=None,
     marker_pts = ax.transData.transform(
         np.column_stack([
             obstacle_df["Al fraction"].to_numpy(float),
-            obstacle_df["Formation energy (Ry)"].to_numpy(float)
+            obstacle_df["Formation energy (meV)"].to_numpy(float)
         ])
     )
 
@@ -198,38 +198,53 @@ def place_labels(fig, ax, df, make_box, hull, legend=None,
         ax.add_artist(ab)
         boxes = np.vstack([boxes, [x0, y0, x1, y1]])
 
-def phase_diagram(labels="near_hull", show_extra=False, near_hull_mev=4.0):
+def phase_diagram(labels="near hull and lowest", show_extra=False, near_hull_mev=4.0):
     """labels: 'all' or 'hull' (only hull vertices).
     show_extra: also show the 'Additional label' and the date under each label."""
     df = pd.read_csv(DATA_PATH)
-    df = df[df["Include in plot"]==True]
+    df = df[df["Include in plot"] == True].reset_index(drop=True)
+    df["Formation energy (meV)"] = df["Formation energy (Ry)"] * RY_TO_MEV
 
-    spin_polarized_df = df[df["Spin polarized"]==True]
+    spin_polarized_df = df[df["Spin polarized"] == True]
 
-    fig, ax = plt.subplots(figsize=(14, 7))
+    fig, ax = plt.subplots(figsize=(14, 5.5))
 
     outer = ax.scatter(
         x=spin_polarized_df["Al fraction"],
-        y=spin_polarized_df["Formation energy (Ry)"],
-        s=60, color=RED, zorder=2, clip_on=False
+        y=spin_polarized_df["Formation energy (meV)"],
+        s=40, color=RED, zorder=2, clip_on=False
     )
     inner = ax.scatter(
         x=spin_polarized_df["Al fraction"],
-        y=spin_polarized_df["Formation energy (Ry)"],
-        s=20, color=YELLOW, zorder=3, clip_on=False
+        y=spin_polarized_df["Formation energy (meV)"],
+        s=10, color=YELLOW, zorder=3, clip_on=False
     )
 
     # Convex hull (pure elements have E_form = 0 by definition)
     ref_x = [0.0, 100.0]
     ref_y = [0.0, 0.0]
     hull_x = np.concatenate([df["Al fraction"].to_numpy(), ref_x])
-    hull_y = np.concatenate([df["Formation energy (Ry)"].to_numpy(), ref_y])
+    hull_y = np.concatenate([df["Formation energy (meV)"].to_numpy(), ref_y])   # df, not spin_polarized_df
     points = np.column_stack([hull_x / 100, hull_y])
     ch = ConvexHull(points)
     lower_simplices = ch.simplices[ch.equations[:, 1] < -1e-12]
     hull_idx = np.unique(lower_simplices.ravel())
     hull = np.column_stack([hull_x[hull_idx], hull_y[hull_idx]])
     hull = hull[np.argsort(hull[:, 0])]
+
+    # Which rows of df are hull vertices (computed once, reused below)
+    hull_mask = np.array([
+        np.any(np.isclose(x, hull[:, 0], atol=1e-9) &
+               np.isclose(y, hull[:, 1], atol=1e-6))
+        for x, y in zip(df["Al fraction"], df["Formation energy (meV)"])
+    ])
+
+    # Print the hull structures
+    hull_df = df[hull_mask].sort_values("Al fraction")
+    print("\nConvex hull structures (meV/atom):")
+    print(hull_df[["Chemical formula", "Space group", "Al fraction",
+                   "Formation energy (meV)"]]
+          .to_string(index=False, float_format=lambda v: f"{v:.2f}"))
 
     ax.scatter(hull[:, 0], hull[:, 1], s=140, facecolors="none",
             edgecolors="black", lw=1.2, zorder=4, clip_on=False)
@@ -239,7 +254,7 @@ def phase_diagram(labels="near_hull", show_extra=False, near_hull_mev=4.0):
         [(outer, inner), hull_line],
         ["DFT calculation", "Convex hull"],
         handler_map={tuple: HandlerTuple(ndivide=1)},
-        loc="lower right",
+        loc="lower left",
         fontsize=12,
     )
 
@@ -249,9 +264,9 @@ def phase_diagram(labels="near_hull", show_extra=False, near_hull_mev=4.0):
     ax.set_ylim(top=0)
     ax.tick_params(top=True, labeltop=True, bottom=False, labelbottom=False)
     ax.tick_params(left=True, labelleft=True, right=False, labelright=False)
-    ax.set_xlabel("% Al", fontsize=16)
+    ax.set_xlabel("% Al", fontsize=12)
     ax.xaxis.set_label_position("top")
-    ax.set_ylabel(r"$E_{\mathrm{form}}$ (Ry/atom)", fontsize=16)
+    ax.set_ylabel(r"$E_{\mathrm{form}}$ (meV/atom)", fontsize=12)
     ax.grid(alpha=0.6)
     fig.subplots_adjust(left=0.07, right=0.80, top=0.90, bottom=0.06)  # right margin holds labels
 
@@ -278,7 +293,7 @@ def phase_diagram(labels="near_hull", show_extra=False, near_hull_mev=4.0):
                 np.isclose(x, hull[:, 0], atol=1e-9) &
                 np.isclose(y, hull[:, 1], atol=1e-12)
             )
-            for x, y in zip(df["Al fraction"], df["Formation energy (Ry)"])
+            for x, y in zip(df["Al fraction"], spin_polarized_df["Formation energy (meV)"])
         ]
         label_df = df[on_hull]
 
@@ -290,10 +305,30 @@ def phase_diagram(labels="near_hull", show_extra=False, near_hull_mev=4.0):
         )
 
         energy_above_hull_mev = (
-            df["Formation energy (Ry)"].to_numpy() - hull_at_points
-        ) * RY_TO_MEV
+            spin_polarized_df["Formation energy (meV)"].to_numpy() - hull_at_points
+        )
 
         label_df = df[energy_above_hull_mev <= near_hull_mev]
+
+    elif labels == "near hull and lowest":
+        # points on the convex hull
+        on_hull = np.array([
+            np.any(
+                np.isclose(x, hull[:, 0], atol=1e-9) &
+                np.isclose(y, hull[:, 1], atol=1e-12)
+            )
+            for x, y in zip(df["Al fraction"], spin_polarized_df["Formation energy (meV)"])
+        ])
+
+        # lowest-energy point for every chemical formula
+        # (covers different cell sizes at the same Al fraction)
+        lowest_idx = df.groupby("Chemical formula")["Formation energy (meV)"].idxmin()
+        lowest = df.index.isin(lowest_idx)
+
+        # always label the reference structures
+        is_ref = df["Space group"].astype(str).str.contains(r"D03|L1_2", na=False).to_numpy()
+
+        label_df = df[on_hull | lowest | is_ref]
 
     elif labels != "all":
         raise ValueError("labels must be 'all', 'hull', or 'near_hull'")
@@ -313,12 +348,12 @@ def phase_diagram_ce():
     df = full_df[full_df["Include in plot"] == True]
 
     dft_x = df["Al fraction"].to_numpy()
-    dft_y = df["Formation energy (Ry)"].to_numpy()
+    dft_y = df["Formation energy (Ry)"].to_numpy() * RY_TO_MEV
     dft_tags = df["Index"].astype(str).to_numpy()
 
     fractions, predicted_energies, tags = list_all_energies()
     fractions = np.asarray(fractions)
-    predicted_energies = np.asarray(predicted_energies)
+    predicted_energies = np.asarray(predicted_energies) * RY_TO_MEV
     tags = np.asarray(tags)
 
     # Filenames of every structure that has a DFT calculation
@@ -331,21 +366,21 @@ def phase_diagram_ce():
     done = np.isin(tags, list(calculated_files))
     print(f"{done.sum()} of {len(tags)} predictions already have a DFT calculation")
 
-    fig, ax = plt.subplots(figsize=(14, 7))
+    fig, ax = plt.subplots(figsize=(7, 5))
 
     # DFT data
-    outer = ax.scatter(dft_x, dft_y, s=60, color=RED, zorder=3, clip_on=False)
-    inner = ax.scatter(dft_x, dft_y, s=20, color=YELLOW, zorder=4, clip_on=False)
+    outer = ax.scatter(dft_x, dft_y, s=40, color=RED, zorder=3, clip_on=False)
+    inner = ax.scatter(dft_x, dft_y, s=10, color=YELLOW, zorder=4, clip_on=False)
 
     # Predictions not yet calculated
     pending = ax.scatter(
         fractions[~done], predicted_energies[~done],
-        alpha=0.5, s=20, color="#0084FF", zorder=2, clip_on=False,
+        alpha=0.3, s=20, color="#00BB5A", zorder=2, clip_on=False,
     )
-    # Predictions that have already been calculated with DFT
+    # Predictions that have already been calculated with DFT0084FF
     calculated = ax.scatter(
         fractions[done], predicted_energies[done],
-        s=45, facecolors="none", edgecolors="#00A650",
+        s=60, facecolors="none", edgecolors="#006CD1", alpha=0.8,
         lw=1.5, zorder=3, clip_on=False,
     )
 
@@ -414,23 +449,23 @@ def phase_diagram_ce():
 
     # Limits and axes
     ax.set_xlim(0, 25)
-    ax.margins(y=0.5)
+    ax.margins(y=0.2)
     ax.set_ylim(top=0)
     ax.tick_params(top=True, labeltop=True, bottom=False, labelbottom=False)
     ax.tick_params(left=True, labelleft=True, right=False, labelright=False)
 
-    ax.set_xlabel("Calculated and predicted energy as a function of % Al", fontsize=16)
+    ax.set_xlabel("Calculated and predicted energy as a function of % Al", fontsize=12)
     ax.xaxis.set_label_position("top")
-    ax.set_ylabel(r"$E_{\mathrm{form}}$ (Ry/atom)", fontsize=16)
+    ax.set_ylabel(r"$E_{\mathrm{form}}$ (meV/atom)", fontsize=16)
     ax.grid(alpha=0.6)
 
     ax.legend(
         [(outer, inner), pending, calculated, hull_line],
-        ["DFT data", "CE prediction (not yet calculated)",
-         "CE prediction (already calculated)", "Convex hull (DFT)"],
+        ["DFT data", "CE prediction",
+         "CE prediction (validated with DFT)", "Convex hull (DFT)"],
         handler_map={tuple: HandlerTuple(ndivide=1)},
-        loc="lower right",
-        fontsize=12,
+        loc="lower left",
+        fontsize=8,
     )
 
     fig.savefig("Phase Diagram Cluster Expansion.png", dpi=360)
@@ -490,7 +525,7 @@ def vegard_law():
     vegard_label = (rf"Vegard's law: $V = ({vegard_intercept:.3f} {vegard_slope:+.4f}\,\mathrm{{\%Al}})\ \mathrm{{\AA}}^3$")
     fit_label = (rf"Linear fit: $V = ({linreg_result.intercept:.3f} {linreg_result.slope:+.4f}\,\mathrm{{\%Al}})\ \mathrm{{\AA}}^3$")
 
-    fig, ax = plt.subplots(figsize=(16, 10))
+    fig, ax = plt.subplots(figsize=(7, 5))
 
     vegard_line, = ax.plot(x, v_vegard, color=BLUE, lw=2, zorder=1)
     fit_line, = ax.plot(x, v_fit, color=GRAY, linestyle="--", alpha=0.7, lw=2, zorder=1)
@@ -498,15 +533,15 @@ def vegard_law():
     outer = ax.scatter(df["Al fraction"], df["Volume per atom (Ang**3)"],
                        s=40, color=RED, zorder=2, clip_on=False)
     inner = ax.scatter(df["Al fraction"], df["Volume per atom (Ang**3)"],
-                       s=12, color=YELLOW, zorder=3, clip_on=False)
+                       s=10, color=YELLOW, zorder=3, clip_on=False)
 
     ax.set_xlim(0, 25)
-    ax.set_ylim(11, 13)
+    ax.set_ylim(11.25, 12.75)
     ax.margins(y=0.1)
     ax.tick_params(labelsize=12)
-    ax.set_xlabel("% Al", fontsize=16)
-    ax.set_ylabel(r"Volume per atom ($\mathrm{\AA}^3$)", fontsize=16)
-    ax.set_title("Calculated and predicted volume as a function of % Al", fontsize=16)
+    ax.set_xlabel("% Al", fontsize=12)
+    ax.set_ylabel(r"Volume per atom ($\mathrm{\AA}^3$)", fontsize=12)
+    ax.set_title("Calculated and predicted volume as a function of % Al", fontsize=12)
     ax.grid(alpha=0.6)
 
     ax.legend(
@@ -514,7 +549,7 @@ def vegard_law():
         ["DFT", vegard_label, fit_label],
         handler_map={tuple: HandlerTuple(ndivide=1)},
         loc="upper left",
-        fontsize=12,
+        fontsize=8,
     )
 
     fig.savefig("Vegard Law.png", dpi=360, bbox_inches="tight")
