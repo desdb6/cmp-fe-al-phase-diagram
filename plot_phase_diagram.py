@@ -205,9 +205,8 @@ def phase_diagram(labels="near_hull", show_extra=False, near_hull_mev=4.0):
     df = df[df["Include in plot"]==True]
 
     spin_polarized_df = df[df["Spin polarized"]==True]
-    non_spin_polarized_df = df[df["Spin polarized"]==False]
 
-    fig, ax = plt.subplots(figsize=(16, 10))
+    fig, ax = plt.subplots(figsize=(14, 7))
 
     outer = ax.scatter(
         x=spin_polarized_df["Al fraction"],
@@ -218,11 +217,6 @@ def phase_diagram(labels="near_hull", show_extra=False, near_hull_mev=4.0):
         x=spin_polarized_df["Al fraction"],
         y=spin_polarized_df["Formation energy (Ry)"],
         s=20, color=YELLOW, zorder=3, clip_on=False
-    )
-    non_pol = ax.scatter(
-        x=non_spin_polarized_df["Al fraction"],
-        y=non_spin_polarized_df["Formation energy (Ry)"],
-        s=60, color=RED, zorder=2, clip_on=False
     )
 
     # Convex hull (pure elements have E_form = 0 by definition)
@@ -242,8 +236,8 @@ def phase_diagram(labels="near_hull", show_extra=False, near_hull_mev=4.0):
     hull_line, = ax.plot(hull[:, 0], hull[:, 1], color="black", lw=1.2, ls="--", zorder=1)
 
     leg = ax.legend(
-        [(outer, inner), non_pol, hull_line],
-        ["Spin polarized", "Non spin polarized", "Convex hull"],
+        [(outer, inner), hull_line],
+        ["DFT calculation", "Convex hull"],
         handler_map={tuple: HandlerTuple(ndivide=1)},
         loc="lower right",
         fontsize=12,
@@ -251,7 +245,7 @@ def phase_diagram(labels="near_hull", show_extra=False, near_hull_mev=4.0):
 
     # Limits, axes (must be final before placing labels)
     ax.set_xlim(0, 25)
-    ax.margins(y=0.5)
+    ax.margins(y=0.1)
     ax.set_ylim(top=0)
     ax.tick_params(top=True, labeltop=True, bottom=False, labelbottom=False)
     ax.tick_params(left=True, labelleft=True, right=False, labelright=False)
@@ -337,7 +331,7 @@ def phase_diagram_ce():
     done = np.isin(tags, list(calculated_files))
     print(f"{done.sum()} of {len(tags)} predictions already have a DFT calculation")
 
-    fig, ax = plt.subplots(figsize=(16, 10))
+    fig, ax = plt.subplots(figsize=(14, 7))
 
     # DFT data
     outer = ax.scatter(dft_x, dft_y, s=60, color=RED, zorder=3, clip_on=False)
